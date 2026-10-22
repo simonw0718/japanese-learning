@@ -23,6 +23,10 @@ cd /Users/simon/Developer/japanese-learning && python3 tools/devserver.py 8765
 1. 加內容：照 `doc/schema.md` 改 `data/*.json`（新 ID 不重用）
 2. 檢查：`python3 tools/validate.py`
 3. 更新快取版本：`python3 tools/bump_sw.py`（自動重寫 `sw.js` 的外殼清單與 `VERSION`）
+4. 測試：`node --test tests/`（日界／閘門／備份檢查／音檔 key 與 build_audio 一致）
+5. 音檔：`python3 tools/build_audio.py`（`--dry-run` 只列出未錄／孤兒，`--prune` 刪孤兒音檔）
+6. （一次）啟用 pre-commit：`bash tools/install_hooks.sh` → 每次 commit 自動跑 `bump_sw --check`＋validate＋測試
+- 新題型 UI 測試資料：`tools/fixtures/`，開 `http://localhost:8765/?fixtures=1`
 
 ## 部署
 線上版：https://simonw0718.github.io/japanese-learning/（GitHub Pages，main 根目錄；`git push` 後約 1 分鐘生效，改檔先跑 `python3 tools/bump_sw.py`）。`.gitignore` 已排除 `doc/reference-index/`、`doc/referecne */`（教科書 PDF）與 `tools/raw/`。

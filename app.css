@@ -236,3 +236,20 @@ details.fold .card { margin: 8px 0; }
 .sess-timer { font-variant-numeric: tabular-nums; font-weight: 600; } .sess-timer.low { color: var(--ng); }
 .sec-row { margin: 8px 0 12px; } .sec-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; } .sec-head span { flex: 1; }
 .row-side.ok { color: var(--ok); font-weight: 700; }
+
+/* v1.4：新題型（文章の文法・情報検索・概要理解・発話表現）と離線音檔 */
+.blank { display: inline-block; min-width: 2.2em; padding: 0 6px; margin: 0 2px; border: 1.5px solid var(--muted); border-radius: 6px; text-align: center; font-weight: 700; font-size: .9em; line-height: 1.5; color: var(--muted); }
+.blank.on { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.passage.scroll { position: relative; max-height: 46vh; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
+.bunsho-stem { font-size: 1.05rem; }
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 6px 0 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.tbl-wrap:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tbl { border-collapse: collapse; min-width: 100%; font-size: .88rem; line-height: 1.5; }
+.tbl caption { caption-side: top; text-align: left; font-weight: 700; padding: 8px 10px 4px; position: sticky; left: 0; }
+.tbl th, .tbl td { border-top: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; min-width: 5.5em; }
+.tbl thead th { background: var(--soft); white-space: nowrap; border-top: 0; }
+.tbl tbody th { position: sticky; left: 0; background: var(--surface); font-weight: 600; min-width: 2.5em; box-shadow: 1px 0 0 var(--line); }
+.stem.situation { background: var(--soft); border-radius: 10px; padding: 8px 12px; font-size: 1.05rem; }
+.script p { margin: 6px 0; line-height: 1.8; } .script .spk { display: inline-block; min-width: 2.4em; color: var(--muted); font-weight: 600; }
+.dl-box { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 8px 0; } .dl-status { min-height: 1.4em; }
+.tbl-hint { margin: 4px 0 -2px; }

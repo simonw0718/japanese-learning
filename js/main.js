@@ -38,10 +38,11 @@ route('/settings', settingsView);
 route('/jlpt', jlpt.top);
 route('/jlpt/:lv/drill/:type', jlpt.drill);
 route('/jlpt/:lv/mini', jlpt.mini);
+route('/jlpt3', jlpt.daily);
 
 // 底部分頁列
 // 圖示一律用漢字一字（與首頁流程卡、朱印「習」同一套語彙）
-const tabs = [['#/home', '今', 'ホーム', ['home', 'quick', 'listen']], ['#/review', '復', '復習', ['review']], ['#/grammar', '文', '文法', ['grammar']], ['#/vocab', '単', '単語', ['vocab', 'newwords']], ['#/more', '他', 'その他', []]];
+const tabs = [['#/home', '今', 'ホーム', ['home', 'quick', 'listen', 'jlpt3']], ['#/review', '復', '復習', ['review']], ['#/grammar', '文', '文法', ['grammar']], ['#/vocab', '単', '単語', ['vocab', 'newwords']], ['#/more', '他', 'その他', []]];
 const nav = h('nav', { class: 'tabbar', 'aria-label': 'メイン' }, tabs.map(([href, ic, t]) => h('a', { href }, h('i', { 'aria-hidden': 'true' }, ic), h('span', null, t))));
 document.body.append(nav);
 onRoute((path) => {
@@ -63,6 +64,15 @@ Promise.all([tts.ready, tts.audioReady]).then(() => {
 });
 // 音檔がない文：Apple 音声で代用しない → 短く知らせる
 let missT = 0;
+// 離線＋音檔未下載：一次性明確提示（耳だけ連播等で逐句 toast を出さない）
+window.addEventListener('tts-offline', () => {
+  if (document.getElementById('offline-audio')) return;
+  const b = h('div', { class: 'banner warn', id: 'offline-audio', role: 'alert' },
+    h('span', null, 'オフラインのため、まだ保存していない音声は再生できません。オンラインのときに「音声をダウンロード」してください。/ 離線中，未下載的音檔無法播放；請連網時先下載。'),
+    h('a', { class: 'btn', href: '#/settings', onclick: () => b.remove() }, '設定'),
+    h('button', { class: 'btn', type: 'button', onclick: () => b.remove() }, '閉じる'));
+  document.body.prepend(b);
+});
 window.addEventListener('tts-missing', () => { if (Date.now() - missT > 4000) { missT = Date.now(); toast('この文の音声はまだありません / 此句尚無音檔'); } });
 
 // Service worker + 更新バナー

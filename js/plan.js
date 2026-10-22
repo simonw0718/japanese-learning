@@ -2,6 +2,7 @@
 import * as db from './db.js';
 import * as D from './data.js';
 import { settings } from './store.js';
+import { newPerToday } from './day.js';
 import { endOfDay, startOfDay, shuffle, todayGate, daily, studiedDays, isMemorized, quizSeen } from './srs.js';
 import { grammarPool, pickQuiz, planGrammarMerge, listenCandidates, LISTEN_SUFFIX } from './logic.js';
 
@@ -60,7 +61,7 @@ export async function buildPlan() {
   const gCards = cards.filter((c) => c.kind === 'grammar' && gMap.has(c.item_id));
   const grammarToday = gCards.filter((c) => c.added >= sod).length;
   const lv = settings().newLevel;
-  const newLeft = gate.newAllowed ? Math.max(0, settings().newPerDay - newVocabToday) : 0;
+  const newLeft = gate.newAllowed ? Math.max(0, newPerToday(settings()) - newVocabToday) : 0;
   const newWords = D.newWordsFor(lv, vocab, introduced, newLeft).map((v) => ({ kind: 'vocab', id: v.id, data: v, isNew: true }));
   const gLv = lv === 'N2' ? 'N2' : 'N3'; // 混合時文法仍先 N3
   const gOrder = [...grammar.filter((g) => g.level === gLv), ...grammar.filter((g) => g.level !== gLv)];

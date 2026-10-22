@@ -61,7 +61,7 @@ export async function practice({ params }) {
   const skill = params.skill;
   const name = { keigo: '敬語', kakikotoba: '書き言葉', grammar: '文法' }[skill] || skill;
   const wrap = hint(name + ' 練習');
-  const qs = (await D.quizzes()).filter((q) => q.skill === skill);
+  const qs = (await D.quizzes()).filter((q) => q.skill === skill && !['bunsho', 'joho'].includes(q.jlpt)); // 本文が必要な題は除く
   if (!qs.length) { wrap.append(empty('問題データがまだありません。')); return wrap; }
   const cards = await db.allCards();
   const seen = new Set(cards.map((c) => c.item_id));

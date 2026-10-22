@@ -1,6 +1,6 @@
 // Service worker：VERSION 與 SHELL_FILES 由 tools/bump_sw.py 產生（改檔後執行一次）
 // VERSION 格式 <hash>-a<n>：n 為音檔快取版本，只有手動改 n 才會清掉已下載的音檔
-const VERSION = '40020c88-a1';
+const VERSION = 'a814aadc-a1';
 const SHELL = `jp-shell-${VERSION}`;
 const DATA = `jp-data-${VERSION}`;
 const AUDIO = `jp-audio-${VERSION.split('-a').pop()}`;
@@ -31,6 +31,11 @@ async function swr(req, name) {
   const net = fetch(req).then((r) => { if (r.ok) cache.put(req, r.clone()); return r; }).catch(() => null);
   return hit || (await net) || new Response('', { status: 504 });
 }
+// 白名單：只快取外殼檔（SHELL_FILES）＋ data/ ＋ icons/；其他（音檔以外的雜項、tools/、doc/…）直接走網路、不進快取
+const SCOPE = new URL('./', self.location).pathname;
+const SHELL_SET = new Set(SHELL_FILES.map((f) => (f === './' ? '' : f)));
+const relPath = (url) => (url.pathname.startsWith(SCOPE) ? url.pathname.slice(SCOPE.length) : null);
+const cacheable = (p) => p != null && (SHELL_SET.has(p) || /^(data|icons)\//.test(p));
 async function cacheFirst(req) {
   const cache = await caches.open(SHELL);
   const hit = await cache.match(req, { ignoreSearch: true });
@@ -66,5 +71,9 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET' || url.origin !== location.origin) return;
   if (/\/audio\/[^/]+\.m4a$/.test(url.pathname)) return e.respondWith(audio(req));
   if (/\/(data|tools\/fixtures)\/[^/]+\.json$/.test(url.pathname) || /\/audio\/manifest\.json$/.test(url.pathname)) return e.respondWith(swr(req, DATA));
+  if (!cacheable(relPath(url))) { // 白名單外：直接走網路、不快取（離線時頁面導覽退回 index.html）
+    if (req.mode === 'navigate') e.respondWith(fetch(req).catch(async () => (await caches.match('index.html')) || Response.error()));
+    return;
+  }
   e.respondWith(DEV ? networkFirst(req) : cacheFirst(req));
 });

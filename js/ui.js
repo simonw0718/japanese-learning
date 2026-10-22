@@ -16,6 +16,8 @@ export function h(tag, attrs, ...kids) {
   for (const k of kids.flat(Infinity)) { if (k == null || k === false) continue; e.append(k.nodeType ? k : document.createTextNode(String(k))); }
   return e;
 }
+// replaceChildren は null を "null" という文字にしてしまう → null／false を除いてから入れる
+export const fill = (el, ...kids) => el.replaceChildren(...kids.flat(Infinity).filter((k) => k != null && k !== false));
 export const frag = (...kids) => { const f = document.createDocumentFragment(); kids.flat(Infinity).forEach((k) => k && f.append(k)); return f; };
 
 // 日文（含振假名）元素
@@ -91,8 +93,10 @@ export function confirmDialog(msg, ok = 'OK', cancel = 'キャンセル / 取消
   });
 }
 export function download(filename, text, type = 'application/json') {
-  const a = h('a', { href: URL.createObjectURL(new Blob([text], { type })), download: filename });
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = h('a', { href: url, download: filename });
   document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000); // iOS Safari：立刻 revoke 會下載失敗，稍後再釋放
 }
 
 // 🎤 口説ボタン（SpeechRecognition 非対応なら null）

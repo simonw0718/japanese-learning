@@ -1,5 +1,5 @@
 // 卡片 session 引擎：單字卡＋選擇題，每答一題立即存檔
-import { h, jaEl, ttsBtn, wordBtn, flagBtn, aiBadge, zhToggle, chip, bar } from './ui.js';
+import { h, fill, jaEl, ttsBtn, wordBtn, flagBtn, aiBadge, zhToggle, chip, bar } from './ui.js';
 import { esc, rubyHtml } from './ruby.js';
 import { settings } from './store.js';
 import * as tts from './tts.js';
@@ -53,7 +53,7 @@ export function createSession({ cards, srs: useSrs = true, finishButtons, onFini
     // 文法題：記錄最後出題時間（輪替用）
     if ((c.kind === 'grammar' || c.data.skill === 'grammar') && c.data.id && !c.retry) srs.markQuizSeen(c.data.id);
     cur = c.kind === 'vocab' ? vocabCard(c, ctx) : c.kind === 'listen' ? listenCard(c, ctx) : quizCard(c, ctx);
-    root.replaceChildren(
+    fill(root,
       h('div', { class: 'sess-top' }, h('span', null, title), timerEl, h('span', { class: 'sess-n' }, `${Math.min(i + 1, queue.length)} / ${queue.length}`)),
       bar(i / queue.length),
       cur.el);
@@ -178,11 +178,30 @@ export function stemHtml(q) {
   } else html = ruby ? rubyHtml(q.stem_ruby) : esc(stem);
   return html.replace(/＿★＿/g, '<span class="slot star" aria-label="星の空欄">★</span>').replace(/＿＿＿/g, '<span class="slot" aria-label="空欄"></span>');
 }
-const choiceHtml = (q, k) => (settings().furigana && q.choices_ruby && q.choices_ruby[k] ? rubyHtml(q.choices_ruby[k]) : esc(q.choices[k]));
-// 讀解本文（c.passage）／聽解音檔（c.audio）
+const choiceHtml = (q, k) => (q.choices_lang !== 'zh' && settings().furigana && q.choices_ruby && q.choices_ruby[k] ? rubyHtml(q.choices_ruby[k]) : esc(q.choices[k]));
+const choiceLang = (q) => (q.choices_lang === 'zh' ? 'zh-Hant' : 'ja');
+// 文章の文法：［１］〜［５］を空欄として表示（cur＝今の問題の空欄を強調）
+const FW0 = 0xFF10;
+export const blankHtml = (html, cur) => html.replace(/［([０-９])］/g, (m, d) => `<span class="blank${d.charCodeAt(0) - FW0 === cur ? ' on' : ''}" aria-label="空欄${d.charCodeAt(0) - FW0}">${d}</span>`);
+// 情報検索の表（横スクロール可）
+export function tableEl(t) {
+  if (!t || !Array.isArray(t.cols)) return null;
+  const hint = t.cols.length > 3 ? h('p', { class: 'muted small tbl-hint' }, '表は横にスクロールできます → / 表格可左右滑動') : null;
+  return [hint, h('div', { class: 'tbl-wrap', tabindex: '0', role: 'region', 'aria-label': t.caption || '表' },
+    h('table', { class: 'tbl', lang: 'ja' }, t.caption ? h('caption', null, t.caption) : null,
+      h('thead', null, h('tr', null, t.cols.map((c) => h('th', { scope: 'col' }, c)))),
+      h('tbody', null, (t.rows || []).map((r) => h('tr', null, r.map((x, i) => h(i ? 'td' : 'th', i ? null : { scope: 'row' }, x)))))))];
+}
+const lineHtml = (p, cur) => blankHtml(settings().furigana && p.ruby ? rubyHtml(p.ruby) : esc(p.ja), cur);
+// 讀解本文（c.passage／c.table）／聽解音檔（c.audio）
 function contextEl(c) {
-  if (c.passage) return h('details', { class: 'fold passage-box', open: true }, h('summary', null, h('span', null, '本文'), h('small', { class: 'muted' }, c.passageTitle || '')),
-    h('div', { class: 'passage' }, c.passage.map((p) => h('p', { lang: 'ja', class: 'ja', html: settings().furigana && p.ruby ? rubyHtml(p.ruby) : esc(p.ja) }))));
+  if (c.passage || c.table) {
+    const cur = c.data && c.data.blank;
+    const box = h('div', { class: 'passage' + (c.bunsho ? ' scroll' : '') }, tableEl(c.table), (c.passage || []).map((p) => h('p', { lang: 'ja', class: 'ja', html: lineHtml(p, cur) })));
+    // 同じ文章が続くので、今の空欄が見える位置まで本文だけをスクロール
+    if (c.bunsho && cur) requestAnimationFrame(() => { const b = box.querySelector('.blank.on'); if (b) box.scrollTop = Math.max(0, b.offsetTop - box.clientHeight / 3); });
+    return h('details', { class: 'fold passage-box', open: true }, h('summary', null, h('span', null, '本文'), h('small', { class: 'muted' }, c.passageTitle || '')), box);
+  }
   if (c.audio) {
     let playing = false;
     const b = h('button', { class: 'btn big', type: 'button', onclick: async () => {
@@ -199,7 +218,8 @@ function contextEl(c) {
 // 選擇題：正解→Good、錯誤→Again
 function quizCard(c, ctx) {
   const q = c.data;
-  if (q.jlpt === 'sokuji') return sokujiCard(c, ctx);
+  if (q.jlpt === 'sokuji' || q.jlpt === 'hatsuwa') return sokujiCard(c, ctx);
+  const gaiyo = q.jlpt === 'gaiyo';
   // JLPT 新題型：解說會提到選項順序（①〜④、語序 1→4），答案位置已平均 → 不打亂
   const base = q.choices.map((t, idx) => ({ t, idx }));
   const order = q.jlpt && !q.gen ? base : shuffle(base);
@@ -207,7 +227,7 @@ function quizCard(c, ctx) {
   const fb = h('div', { class: 'feedback', hidden: true });
   const nextBtn = h('button', { class: 'btn primary big', type: 'button', onclick: () => ctx.next() }, '次へ');
   const act = h('div', { class: 'sticky-act', hidden: true }, nextBtn); // 作答後：拇指區固定（不被分頁列擋住）
-  const btns = order.map((o, n) => h('button', { class: 'choice' + (q.jlpt === 'yoho' ? ' long' : ''), type: 'button', onclick: () => pick(n) }, h('span', { class: 'ch-n' }, n + 1), h('span', { lang: 'ja', html: choiceHtml(q, o.idx) }), h('span', { class: 'ch-mark', 'aria-hidden': 'true' })));
+  const btns = order.map((o, n) => h('button', { class: 'choice' + (q.jlpt === 'yoho' ? ' long' : ''), type: 'button', onclick: () => pick(n) }, h('span', { class: 'ch-n' }, n + 1), h('span', { lang: choiceLang(q), html: choiceHtml(q, o.idx) }), h('span', { class: 'ch-mark', 'aria-hidden': 'true' })));
   async function pick(n) {
     if (answered) return;
     answered = true;
@@ -218,28 +238,32 @@ function quizCard(c, ctx) {
     btns.forEach((b, k) => { b.disabled = true; if (order[k].idx === q.answer) { b.classList.add('right'); mark(b, '✓', '正解'); } });
     if (!ok) { btns[n].classList.add('wrong'); mark(btns[n], '✗', 'あなたの答え'); }
     const zh = zhToggle(q.explain_zh);
-    fb.replaceChildren(h('b', { class: ok ? 'ok' : 'ng' }, ok ? '✓ 正解！' : '✗ 残念…'),
+    fill(fb, h('b', { class: ok ? 'ok' : 'ng' }, ok ? '✓ 正解！' : '✗ 残念…'),
       q.full_ja ? h('p', { lang: 'ja', class: 'full-ja' }, h('span', { html: (settings().furigana && q.full_ruby ? rubyHtml(q.full_ruby) : esc(q.full_ja)).replace(/　/g, '') }), ' ', ttsBtn(q.full_ja.replace(/　/g, ''))) : null,
-      h('p', { lang: 'ja' }, q.explain_ja || ''), zh.btn, zh.box);
+      h('p', { lang: 'ja' }, q.explain_ja || ''), zh.btn, zh.box, gaiyo ? scriptEl(q) : null);
     fb.hidden = false; act.hidden = false;
+    if (gaiyo) stemEl.hidden = false;
     nextBtn.focus({ preventScroll: true });
     fb.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
     await ctx.record(ok ? 'good' : 'again');
   }
   const skillName = JLPT_NAME[q.jlpt] || { grammar: '文法', keigo: '敬語', kakikotoba: '書き言葉', reading: '読解', listening: '聴解', vocab: '語彙' }[q.skill] || '';
   const prompt = PROMPT[q.jlpt];
+  // 概要理解：作答前は質問文も音声のみ（聞き終わったら文字でも表示）
+  const stemEl = h('p', { class: 'stem' + (q.jlpt === 'yoho' ? ' yoho-word' : '') + (q.jlpt === 'bunsho' ? ' bunsho-stem' : ''), lang: 'ja', hidden: gaiyo, html: q.jlpt === 'bunsho' ? blankHtml(stemHtml(q), q.blank) + ' に入るもの' : stemHtml(q) });
   const el = h('div', { class: 'card qcard' },
     h('div', { class: 'card-tags' }, chip(skillName), chip(q.level), ctx.retry ? chip('もう一度', 'accent') : null, q.gen ? null : aiBadge(q), q.gen || ctx.exam ? null : h('span', { class: 'tags-end' }, flagBtn(q.id))),
-    contextEl(c),
+    gaiyo ? gaiyoAudio(q, () => { stemEl.hidden = false; }) : contextEl(c),
     prompt ? h('p', { class: 'muted small q-prompt' }, prompt) : null,
-    h('p', { class: 'stem' + (q.jlpt === 'yoho' ? ' yoho-word' : ''), lang: 'ja', html: stemHtml(q) }),
+    stemEl,
     h('div', { class: 'choices' }, btns), fb, act);
   return { el, key(k, e) {
     if (!answered && /^[1-4]$/.test(k)) { e.preventDefault(); pick(+k - 1); }
     else if (answered && (k === 'Enter' || k === ' ')) { e.preventDefault(); ctx.next(); }
   } };
 }
-export const JLPT_NAME = { kanji_yomi: '漢字読み', hyoki: '表記', bunmyaku: '文脈規定', iikae: '言い換え', yoho: '用法', keishiki: '文法形式', narabe: '並べ替え', naiyo: '内容理解', point: 'ポイント理解', sokuji: '即時応答' };
+export const JLPT_NAME = { kanji_yomi: '漢字読み', hyoki: '表記', bunmyaku: '文脈規定', iikae: '言い換え', yoho: '用法', keishiki: '文法形式', narabe: '並べ替え', naiyo: '内容理解', point: 'ポイント理解', sokuji: '即時応答',
+  gokeisei: '語形成', bunsho: '文章の文法', joho: '情報検索', gaiyo: '概要理解', hatsuwa: '発話表現', doukei: '同形異義語' };
 const PROMPT = {
   kanji_yomi: '＿＿の言葉の読み方として最もよいものを選んでください。',
   hyoki: '＿＿の言葉を漢字で書くとき、最もよいものを選んでください。',
@@ -247,22 +271,52 @@ const PROMPT = {
   iikae: '＿＿に意味が最も近いものを選んでください。',
   yoho: '次の言葉の使い方として最もよいものを選んでください。',
   narabe: '★に入る最もよいものを選んでください。',
+  gokeisei: '（　　）に入れるのに最もよいものを選んでください。',
+  bunsho: '文章全体の内容を考えて、空欄に入る最もよいものを選んでください。',
+  joho: '表と案内を読んで、答えとして最もよいものを選んでください。',
+  gaiyo: '話を聞いて、質問に答えてください。/ 聽完回答問題',
+  doukei: '＿＿の言葉の、この文での意味として最もよいものを選んでください。/ 選出底線詞語在句中的意思（中文）',
 };
+// 概要理解：script（F／M の音声）＋質問を続けて再生。文字は作答後
+function gaiyoAudio(q, onHeard) {
+  let playing = false;
+  const texts = [...(q.script || []).map((l) => l.ja), q.stem].filter(Boolean);
+  const b = h('button', { class: 'btn big', type: 'button', onclick: async () => {
+    if (playing) { tts.stop(); return; }
+    playing = true; b.textContent = '■ 停止';
+    const ok = await tts.playSequence(texts, { gap: 500, title: '概要理解' });
+    playing = false; b.textContent = '▶ もう一度聞く';
+    if (ok) onHeard();
+  } }, '▶ 聞く');
+  const showQ = h('button', { class: 'btn', type: 'button', onclick: () => { onHeard(); showQ.remove(); } }, '質問を文字で見る / 顯示問題');
+  setTimeout(() => b.click(), 300);
+  return h('div', { class: 'audio-box' }, h('p', { class: 'muted small' }, '話を聞いてから答えてください（スクリプトは答えた後に見られます）/ 先聽再作答，作答後可看逐字稿'), h('div', { class: 'ctl-row' }, b, showQ));
+}
+// 概要理解の逐字稿（作答後）
+function scriptEl(q) {
+  const ruby = (l) => (settings().furigana && l.ruby ? rubyHtml(l.ruby) : esc(l.ja));
+  return h('details', { class: 'fold' }, h('summary', null, h('span', null, 'スクリプト / 逐字稿')),
+    h('div', { class: 'script' }, (q.script || []).map((l) => h('p', { lang: 'ja' }, h('small', { class: 'spk' }, l.spk === 'M' ? '男' : '女'), h('span', { html: ruby(l) }), ' ', ttsBtn(l.ja))),
+      h('p', { lang: 'ja' }, h('small', { class: 'spk' }, '質問'), h('span', { html: settings().furigana && q.stem_ruby ? rubyHtml(q.stem_ruby) : esc(q.stem) }))));
+}
 
 // 即時応答：短い発話を聞く → 3つの返事（音声）から選ぶ。文字は答えた後に表示
+// 発話表現（hatsuwa）：場面の説明（文字＋音声）→ 3つの言い方（音声）から選ぶ
 function sokujiCard(c, ctx) {
   const q = c.data;
+  const hatsuwa = q.jlpt === 'hatsuwa';
+  const lead = hatsuwa ? q.situation_ja : q.prompt_ja, leadRuby = hatsuwa ? q.situation_ruby : q.prompt_ruby;
   let answered = false, playing = false;
   const fb = h('div', { class: 'feedback', hidden: true });
   const nextBtn = h('button', { class: 'btn primary big', type: 'button', onclick: () => ctx.next() }, '次へ');
   const act = h('div', { class: 'sticky-act', hidden: true }, nextBtn);
   const txt = q.choices.map((t, k) => h('span', { lang: 'ja', class: 'ch-text', hidden: true, html: choiceHtml(q, k) }));
   const btns = q.choices.map((t, k) => h('button', { class: 'choice', type: 'button', onclick: () => pick(k) }, h('span', { class: 'ch-n' }, k + 1), txt[k], h('span', { class: 'ch-mark', 'aria-hidden': 'true' })));
-  const promptTxt = h('p', { class: 'stem', lang: 'ja', hidden: true, html: settings().furigana && q.prompt_ruby ? rubyHtml(q.prompt_ruby) : esc(q.prompt_ja) });
+  const promptTxt = h('p', { class: 'stem' + (hatsuwa ? ' situation' : ''), lang: 'ja', hidden: !hatsuwa, html: settings().furigana && leadRuby ? rubyHtml(leadRuby) : esc(lead) });
   const play = async () => {
     if (playing) { tts.stop(); return; }
     playing = true; pb.textContent = '■ 停止';
-    await tts.playSequence([q.prompt_ja, ...q.choices], { gap: 700, title: '即時応答', onLine: (i) => btns.forEach((b, k) => b.classList.toggle('playing', k === i - 1)) });
+    await tts.playSequence([lead, ...q.choices], { gap: 700, title: JLPT_NAME[q.jlpt], onLine: (i) => btns.forEach((b, k) => b.classList.toggle('playing', k === i - 1)) });
     btns.forEach((b) => b.classList.remove('playing'));
     playing = false; pb.textContent = '▶ もう一度聞く';
   };
@@ -278,7 +332,7 @@ function sokujiCard(c, ctx) {
     btns[q.answer].classList.add('right'); btns[q.answer].querySelector('.ch-mark').textContent = '✓';
     if (!ok) { btns[k].classList.add('wrong'); btns[k].querySelector('.ch-mark').textContent = '✗'; }
     const zh = zhToggle(q.explain_zh);
-    fb.replaceChildren(h('b', { class: ok ? 'ok' : 'ng' }, ok ? '✓ 正解！' : '✗ 残念…'), h('p', { lang: 'ja' }, q.explain_ja || ''), zh.btn, zh.box);
+    fill(fb, h('b', { class: ok ? 'ok' : 'ng' }, ok ? '✓ 正解！' : '✗ 残念…'), h('p', { lang: 'ja' }, q.explain_ja || ''), zh.btn, zh.box);
     fb.hidden = false; act.hidden = false;
     nextBtn.focus({ preventScroll: true });
     fb.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
@@ -286,9 +340,9 @@ function sokujiCard(c, ctx) {
   }
   setTimeout(play, 300);
   const el = h('div', { class: 'card qcard' },
-    h('div', { class: 'card-tags' }, chip('即時応答'), chip(q.level), ctx.retry ? chip('もう一度', 'accent') : null, aiBadge(q), ctx.exam ? null : h('span', { class: 'tags-end' }, flagBtn(q.id))),
-    h('p', { class: 'muted small q-prompt' }, '文を聞いて、1〜3の中から最もよい返事を選んでください。/ 聽完選出最適當的回應'),
-    pb, promptTxt, h('div', { class: 'choices' }, btns), fb, act);
+    h('div', { class: 'card-tags' }, chip(JLPT_NAME[q.jlpt]), chip(q.level), ctx.retry ? chip('もう一度', 'accent') : null, aiBadge(q), ctx.exam ? null : h('span', { class: 'tags-end' }, flagBtn(q.id))),
+    h('p', { class: 'muted small q-prompt' }, hatsuwa ? '場面を聞いて、この人が言うこととして最もよいものを1〜3の中から選んでください。/ 聽情境，選出最適當的說法' : '文を聞いて、1〜3の中から最もよい返事を選んでください。/ 聽完選出最適當的回應'),
+    hatsuwa ? promptTxt : null, pb, hatsuwa ? null : promptTxt, h('div', { class: 'choices' }, btns), fb, act);
   return { el, key(k, e) {
     if (!answered && /^[1-3]$/.test(k)) { e.preventDefault(); pick(+k - 1); }
     else if (!answered && k === 'r') { e.preventDefault(); play(); }

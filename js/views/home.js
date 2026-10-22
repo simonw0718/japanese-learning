@@ -4,6 +4,7 @@ import * as db from '../db.js';
 import { weekDots, dayKey } from '../srs.js';
 import { settings } from '../store.js';
 import * as D from '../data.js';
+import { dailyDone } from './jlpt.js';
 
 function flow(icon, title, sub, href, { done = false, off = false } = {}) {
   return h(off ? 'div' : 'a', { class: 'flow' + (done ? ' done' : '') + (off ? ' off' : ''), href: off ? null : href },
@@ -17,10 +18,13 @@ export async function home() {
   const dots = await weekDots();
   const todayN = p.answeredToday; // meta 計數，不必每次讀全部 log
   const dlgDone = (await db.getMeta('dlg_done')) === dayKey();
+  const jDone = await dailyDone();
+  const jOn = p.vocab.length > 0 || p.quizzes.some((q) => q.jlpt); // 出題できる
   const lastBackup = await db.getMeta('last_backup_at');
   const hasProgress = p.cards.length > 0;
   const backupOld = hasProgress && (!lastBackup || Date.now() - lastBackup > 7 * 86400000);
   const g = p.gate;
+  const jSkip = g.mode === 'welcome' || g.mode === 'debt'; // 負荷が高い日は省略してよい（「つづける」に入れない）
 
   const capDone = p.due > 0 && p.remaining === 0; // 今日上限已達
   const reviewSub = capDone ? '今日の分は完了 / 今日份已完成' : g.mode === 'welcome' ? `おかえり！${p.dueCards.length}枚だけ` : p.due ? `${p.dueCards.length}枚（約${Math.max(1, Math.round(p.dueCards.length * 0.27))}分）` : '今日の復習はありません';
@@ -32,6 +36,7 @@ export async function home() {
     p.nextGrammar && { href: gHref, label: '新しい文法', sub: p.nextGrammar.pattern },
     p.newWords.length && { href: '#/newwords', label: '新しい単語', sub: `${p.newWords.length}語` },
     p.nextDialogue && !dlgDone && { href: `#/dialogue/${p.nextDialogue.id}`, label: '会話', sub: p.nextDialogue.title },
+    jOn && !jDone && !jSkip && { href: '#/jlpt3', label: 'JLPT 3問', sub: 'いろいろな題型から3問' },
   ].filter(Boolean);
   const nx = steps[0];
   const cont = nx
@@ -46,7 +51,8 @@ export async function home() {
       flow('復', '復習', reviewSub + (todayN ? `・今日 ${todayN}回答` : ''), '#/review', { done: capDone || (p.due === 0 && todayN > 0) }),
       flow('文', '新しい文法 1', p.nextGrammar ? p.nextGrammar.pattern : p.grammarToday ? '今日の分は完了' : p.grammarTotal ? (g.newAllowed ? 'すべて学習済み' : '復習を優先しましょう') : 'データがありません', gHref, { done: p.grammarToday > 0 && !p.nextGrammar, off: !p.nextGrammar && !p.grammarToday && !p.grammarTotal }),
       flow('単', `新しい単語 ${p.newWords.length || ''}`.trim(), p.newWords.length ? `${p.newWords.length}語（${D.LEVEL_LABEL[settings().newLevel] || settings().newLevel}）` : p.newVocabToday ? `今日 ${p.newVocabToday}語 完了` : g.newAllowed ? 'データがありません' : '復習を優先しましょう', '#/newwords', { done: p.newVocabToday > 0 && !p.newWords.length, off: !p.newWords.length && !p.newVocabToday }),
-      flow('話', '会話 1段', p.nextDialogue ? p.nextDialogue.title : 'データがありません', p.nextDialogue ? `#/dialogue/${p.nextDialogue.id}` : '#/dialogues', { done: dlgDone, off: !p.nextDialogue })),
+      flow('話', '会話 1段', p.nextDialogue ? p.nextDialogue.title : 'データがありません', p.nextDialogue ? `#/dialogue/${p.nextDialogue.id}` : '#/dialogues', { done: dlgDone, off: !p.nextDialogue }),
+      flow('試', 'JLPT 3問', jDone ? '今日の分は完了 / 今日份已完成' : !jOn ? 'データがありません' : jSkip ? '今日は省略してOK / 今天可略過' : 'いろいろな題型から3問 / 隨機 3 題', '#/jlpt3', { done: jDone, off: !jOn })),
     h('div', { class: 'quick' },
       h('a', { class: 'btn', href: '#/quick' }, '⏱ 2分だけ'),
       h('a', { class: 'btn', href: '#/listen' }, '🎧 耳だけ'),

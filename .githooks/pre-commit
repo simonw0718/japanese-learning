@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# pre-commit：sw.js 是否最新、資料檢查、單元測試。任何一項失敗就中止 commit。
+# 安裝：bash tools/install_hooks.sh（一次即可）。緊急時可 git commit --no-verify 略過。
+set -u
+cd "$(git rev-parse --show-toplevel)" || exit 1
+fail=0
+echo "▶ bump_sw --check"; python3 tools/bump_sw.py --check || { echo "  → 先跑：python3 tools/bump_sw.py && git add sw.js"; fail=1; }
+echo "▶ validate"; python3 tools/validate.py || fail=1
+if command -v node >/dev/null 2>&1; then
+  echo "▶ node --test"; log=$(mktemp); node --test tests/ >"$log" 2>&1 || { tail -40 "$log"; fail=1; }; rm -f "$log"
+else
+  echo "⚠ 找不到 node，略過單元測試"
+fi
+[ $fail -eq 0 ] && echo "✅ pre-commit 通過" || echo "❌ pre-commit 未通過（commit 已中止）"
+exit $fail

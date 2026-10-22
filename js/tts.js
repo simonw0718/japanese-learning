@@ -43,16 +43,27 @@ const clean = (t) => String(t).replace(/\{[^}]*\}/g, '').replace(/[（(][　\s]*
 export const split = (t) => clean(t).match(/[^。！？!?]+[。！？!?]*/g) || [];
 
 // ---- 預錄音檔 ----
-let keys = new Set(), audioVoice = '';
+let keys = new Set(), audioVoice = '', audioBytes = 0;
 export const audioReady = fetch('audio/manifest.json').then((r) => (r.ok ? r.json() : null))
-  .then((m) => { if (m && Array.isArray(m.keys)) { keys = new Set(m.keys); audioVoice = m.voice || ''; } }).catch(() => {});
-export const audioInfo = () => ({ has: keys.size > 0, voice: audioVoice, n: keys.size });
+  .then((m) => { if (m && Array.isArray(m.keys)) { keys = new Set(m.keys); audioVoice = m.voice || ''; audioBytes = +m.bytes || 0; } }).catch(() => {});
+// bytes：manifest に合計サイズがなければ平均 13KB／件で見積もる（est=true）
+export const audioInfo = () => ({ has: keys.size > 0, voice: audioVoice, n: keys.size, bytes: audioBytes || keys.size * 13000, est: !audioBytes });
+export const allAudioUrls = () => [...keys].map((k) => `audio/${k}.m4a`);
 function fileOf(t) {
   if (!keys.size || t == null) return null;
   for (const x of new Set([String(t).trim(), clean(t)])) { const k = audioKey(x); if (keys.has(k)) return `audio/${k}.m4a`; }
   return null;
 }
 export const hasAudio = (t) => !!fileOf(t);
+export const audioUrl = (t) => fileOf(t); // 離線下載用（沒有音檔＝null）
+// 離線＋未下載：同一次播放（token）只通知一次，不逐句跳 toast
+let offlineTok = -1;
+const offline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
+function offlineMiss(my, text) {
+  if (offlineTok === my) return;
+  offlineTok = my;
+  window.dispatchEvent(new CustomEvent('tts-offline', { detail: text }));
+}
 
 let el = null; // 共用一個 <audio>（iOS 鎖屏時可連續播放）
 const player = () => (el ||= Object.assign(new Audio(), { preload: 'auto' }));
@@ -95,14 +106,17 @@ async function sayText(text, rate, my) {
   const s = skip;
   for (const c of split(text)) { if (my !== token || s !== skip) return; await say(c, rate, my); }
 }
-// 一段文字：有音檔播音檔（失敗則合成）；fallback＝合成時改唸的文字（單字用讀音）
+// 一段文字：有音檔播音檔（失敗則合成）；fallback＝合成時改唸的文字（單字用讀音）。回傳 true＝有出聲
 async function sayOne(text, rate, my, fallback) {
   const f = fileOf(text);
-  if (f && (await playFile(f, rate, my))) return;
-  if (my !== token) return;
+  if (f && (await playFile(f, rate, my))) return true;
+  if (my !== token) return false;
+  // 有音檔但離線且沒下載 → 一次性提示（不逐句 toast、不改用合成）
+  if (f && offline()) { offlineMiss(my, text); return false; }
   // 沒有可用的非 Apple 聲音：不唸（絕不交給系統預設聲音），通知畫面
-  if (!synth || !pickVoice()) { window.dispatchEvent(new CustomEvent('tts-missing', { detail: text })); return; }
+  if (!synth || !pickVoice()) { window.dispatchEvent(new CustomEvent('tts-missing', { detail: text })); return false; }
   await sayText(fallback || text, rate, my);
+  return true;
 }
 function halt() { if (synth) synth.cancel(); if (cut) cut(); paused = false; resumeWait.splice(0).forEach((f) => f()); }
 
@@ -133,14 +147,17 @@ function mediaSession() {
 }
 // 鎖屏（頁面隱藏）時不等間隔：計時器可能被暫停，直接接下一句
 const pause = (t, nextText) => (t && !(hasAudio(nextText) && document.visibilityState === "hidden") ? sleep(t) : null);
-async function runLines(texts, { rate, gap, onLine, title }, my, m) {
+// stat.played：實際出聲的句數（離線全失敗時讓播放清單停下）
+async function runLines(texts, { rate, gap, onLine, title }, my, m, stat = {}) {
+  stat.played = 0;
   for (let i = 0; i < texts.length; i++) {
     if (my !== token) return false;
     await waitResume();
     if (my !== token) return false;
     if (onLine) onLine(i);
     m.line(title, texts, i);
-    await sayOne(texts[i], rate, my);
+    if (await sayOne(texts[i], rate, my)) stat.played++;
+    else if (offlineTok === my) continue; // 離線未下載：不等間隔
     await waitResume();
     await pause(gap, texts[i + 1]);
   }
@@ -167,7 +184,9 @@ export async function playPlaylist(groups, { start = 0, count = 1, rate = settin
     while (n < count && my === token) {
       const gi = (start + n) % groups.length, g = groups[gi];
       if (onGroup) onGroup(gi, n);
-      if (!(await runLines(g.texts, { rate, gap, onLine, title: g.title }, my, m))) break;
+      const stat = {};
+      if (!(await runLines(g.texts, { rate, gap, onLine, title: g.title }, my, m, stat))) break;
+      if (!stat.played && offline()) break; // 離線且這段完全沒有音檔 → 停（不空轉循環）
       n++;
       if (onGroupDone) onGroupDone(gi, n);
       if (n < count) await pause(groupGap, groups[(start + n) % groups.length].texts[0]);

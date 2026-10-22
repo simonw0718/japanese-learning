@@ -258,6 +258,396 @@
    "explain_ja": "お知らせ。",
    "explain_zh": "通知。",
    "review": "ai_drafted"
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-gokeisei-n3-001",
+   "level": "N3",
+   "skill": "vocab",
+   "jlpt": "gokeisei",
+   "target": [],
+   "stem": "この薬は（　　）成年には売れません。",
+   "stem_ruby": "この薬{くすり}は（　　）成年{せいねん}には売{う}れません。",
+   "choices": [
+    "未",
+    "不",
+    "非",
+    "無"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-gokeisei-n3-002",
+   "level": "N3",
+   "skill": "vocab",
+   "jlpt": "gokeisei",
+   "target": [],
+   "stem": "駅から近いので、（　　）便利だ。",
+   "stem_ruby": "駅{えき}から近{ちか}いので、（　　）便利{べんり}だ。",
+   "choices": [
+    "超",
+    "高",
+    "大",
+    "強"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-gokeisei-n2-001",
+   "level": "N2",
+   "skill": "vocab",
+   "jlpt": "gokeisei",
+   "target": [],
+   "stem": "まだ（　　）発表の新曲。",
+   "stem_ruby": "まだ（　　）発表{はっぴょう}の新曲{しんきょく}。",
+   "choices": [
+    "未",
+    "不",
+    "非",
+    "無"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-doukei-n3-001",
+   "level": "N3",
+   "skill": "vocab",
+   "jlpt": "doukei",
+   "target": [],
+   "stem": "息子は毎晩、机に向かって勉強している。",
+   "stem_ruby": "息子{むすこ}は毎晩{まいばん}、机{つくえ}に向{む}かって勉強{べんきょう}している。",
+   "u": "勉強",
+   "choices": [
+    "讀書、學習",
+    "不情願地硬撐",
+    "加強體能訓練",
+    "暖身練習"
+   ],
+   "choices_lang": "zh",
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-doukei-n3-002",
+   "level": "N3",
+   "skill": "vocab",
+   "jlpt": "doukei",
+   "target": [],
+   "stem": "駅前の大きな新聞社で働いている。",
+   "stem_ruby": "駅前{えきまえ}の大{おお}きな新聞社{しんぶんしゃ}で働{はたら}いている。",
+   "u": "新聞",
+   "choices": [
+    "報紙",
+    "新的消息",
+    "最近聽說的事",
+    "廣播"
+   ],
+   "choices_lang": "zh",
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-bunsho-n3-001",
+   "level": "N3",
+   "skill": "grammar",
+   "jlpt": "bunsho",
+   "target": [
+    "r-bunsho-n3-001"
+   ],
+   "blank": 1,
+   "stem": "［１］",
+   "choices": [
+    "のに",
+    "わりに",
+    "としても",
+    "ので"
+   ],
+   "answer": 3
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-bunsho-n3-002",
+   "level": "N3",
+   "skill": "grammar",
+   "jlpt": "bunsho",
+   "target": [
+    "r-bunsho-n3-001"
+   ],
+   "blank": 2,
+   "stem": "［２］",
+   "choices": [
+    "ところが",
+    "だから",
+    "つまり",
+    "そのうえ"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-bunsho-n3-003",
+   "level": "N3",
+   "skill": "grammar",
+   "jlpt": "bunsho",
+   "target": [
+    "r-bunsho-n3-001"
+   ],
+   "blank": 3,
+   "stem": "［３］",
+   "choices": [
+    "作ってみた",
+    "作られた",
+    "作らせた",
+    "作ってあげた"
+   ],
+   "choices_ruby": [
+    "作{つく}ってみた",
+    "作{つく}られた",
+    "作{つく}らせた",
+    "作{つく}ってあげた"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-joho-n3-001",
+   "level": "N3",
+   "skill": "reading",
+   "jlpt": "joho",
+   "target": [
+    "r-joho-n3-001"
+   ],
+   "stem": "3歳の子を1日預けると、全部でいくらか。",
+   "stem_ruby": "3歳{さい}の子{こ}を1日{にち}預{あず}けると、全部{ぜんぶ}でいくらか。",
+   "choices": [
+    "2,500円",
+    "2,800円",
+    "3,000円",
+    "1,500円"
+   ],
+   "answer": 1
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-joho-n3-002",
+   "level": "N3",
+   "skill": "reading",
+   "jlpt": "joho",
+   "target": [
+    "r-joho-n3-001"
+   ],
+   "stem": "1歳の子の予約の締切はいつか。",
+   "stem_ruby": "1歳{さい}の子{こ}の予約{よやく}の締切{しめきり}はいつか。",
+   "choices": [
+    "利用日の7日前",
+    "利用日の5日前",
+    "利用日の3日前",
+    "前日"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-r-long-n2-001-1",
+   "level": "N2",
+   "skill": "reading",
+   "target": [
+    "r-long-n2-001"
+   ],
+   "stem": "筆者が一番言いたいことは何か。",
+   "stem_ruby": "筆者{ひっしゃ}が一番{いちばん}言{い}いたいことは何{なに}か。",
+   "choices": [
+    "失敗から学ぶことが大切だ",
+    "仕事は早く終えるべきだ",
+    "上司に従うべきだ",
+    "休みを増やすべきだ"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-r-long-n2-001-2",
+   "level": "N2",
+   "skill": "reading",
+   "target": [
+    "r-long-n2-001"
+   ],
+   "stem": "「それ」とは何か。",
+   "stem_ruby": "「それ」とは何{なに}か。",
+   "choices": [
+    "最初の失敗",
+    "新しい仕事",
+    "上司の言葉",
+    "同僚の助け"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-gaiyo-n3-001",
+   "level": "N3",
+   "skill": "listening",
+   "jlpt": "gaiyo",
+   "target": [],
+   "script": [
+    {
+     "spk": "F",
+     "ja": "みなさん、今日は天気がいいので、午後の授業は外で行います。",
+     "ruby": "みなさん、今日{きょう}は天気{てんき}がいいので、午後{ごご}の授業{じゅぎょう}は外{そと}で行{おこな}います。"
+    },
+    {
+     "spk": "F",
+     "ja": "帽子と水を忘れないでください。",
+     "ruby": "帽子{ぼうし}と水{みず}を忘{わす}れないでください。"
+    }
+   ],
+   "stem": "先生は何について話していますか。",
+   "stem_ruby": "先生{せんせい}は何{なに}について話{はな}していますか。",
+   "choices": [
+    "午後の授業の場所",
+    "明日の天気",
+    "帽子の売り場",
+    "水の飲み方"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-gaiyo-n3-002",
+   "level": "N3",
+   "skill": "listening",
+   "jlpt": "gaiyo",
+   "target": [],
+   "script": [
+    {
+     "spk": "M",
+     "ja": "最近、駅前に新しいパン屋ができたよね。",
+     "ruby": "最近{さいきん}、駅前{えきまえ}に新{あたら}しいパン屋{や}ができたよね。"
+    },
+    {
+     "spk": "F",
+     "ja": "うん、昨日行ったけど、すごく並んでたよ。",
+     "ruby": "うん、昨日{きのう}行{い}ったけど、すごく並{なら}んでたよ。"
+    }
+   ],
+   "stem": "二人は何について話していますか。",
+   "stem_ruby": "二人{ふたり}は何{なに}について話{はな}していますか。",
+   "choices": [
+    "新しい店",
+    "駅の工事",
+    "昨日の天気",
+    "パンの作り方"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-hatsuwa-n3-001",
+   "level": "N3",
+   "skill": "listening",
+   "jlpt": "hatsuwa",
+   "target": [],
+   "situation_ja": "友だちの本を借りたいです。何と言いますか。",
+   "situation_ruby": "友{とも}だちの本{ほん}を借{か}りたいです。何{なん}と言{い}いますか。",
+   "choices": [
+    "この本、貸してくれない？",
+    "この本、借りてくれない？",
+    "この本、貸してあげようか。"
+   ],
+   "choices_ruby": [
+    "この本{ほん}、貸{か}してくれない？",
+    "この本{ほん}、借{か}りてくれない？",
+    "この本{ほん}、貸{か}してあげようか。"
+   ],
+   "answer": 0
+  },
+  {
+   "v": 1,
+   "type": "mcq",
+   "review": "ai_drafted",
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "id": "q-j-hatsuwa-n3-002",
+   "level": "N3",
+   "skill": "listening",
+   "jlpt": "hatsuwa",
+   "target": [],
+   "situation_ja": "会議に遅れそうです。上司に電話で何と言いますか。",
+   "situation_ruby": "会議{かいぎ}に遅{おく}れそうです。上司{じょうし}に電話{でんわ}で何{なん}と言{い}いますか。",
+   "choices": [
+    "申し訳ありません、10分ほど遅れます。",
+    "遅れてもいいですよ。",
+    "お先に失礼します。"
+   ],
+   "choices_ruby": [
+    "申{もう}し訳{わけ}ありません、10分{ぷん}ほど遅{おく}れます。",
+    "遅{おく}れてもいいですよ。",
+    "お先{さき}に失礼{しつれい}します。"
+   ],
+   "answer": 0
   }
  ]
 }

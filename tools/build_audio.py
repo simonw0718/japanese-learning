@@ -3,8 +3,10 @@
 
 聲音：冥鳴ひまり（主要）＋玄野武宏（會話中「自分」以外的角色）。授權整理見 doc/voice-terms.md。
 需先啟動引擎：~/Developer/voicevox_engine/engine/run --host 127.0.0.1 --port 50021
-用法：python3 tools/build_audio.py [--vocab N] [--jobs 3]
-  --vocab N  每級單字前 N 個（依詞頻）也錄單字發音（預設全部：瀏覽器語音在 Apple 裝置＝Apple 聲音，不可用）
+用法：python3 tools/build_audio.py [--vocab N] [--jobs 3] [--dry-run] [--prune]
+  --vocab N   每級單字前 N 個（依詞頻）也錄單字發音（預設全部：瀏覽器語音在 Apple 裝置＝Apple 聲音，不可用）
+  --dry-run   只列出：句數、尚未錄音數、孤兒音檔數（不合成、不寫檔）
+  --prune     刪除 audio/ 中不在清單的孤兒音檔（先列出再刪；搭配 --dry-run 只列出）
 已存在的檔案會略過（可重跑、可中斷）。key 規則必須與 js/tts.js 相同：
   FNV-1a 32bit(UTF-8 of text.strip()) 8 位 hex ＋ 字數（code points）3 位 hex
 單字依「讀音」合成（避免 TTS 把漢字讀錯），但以「表記」計算 key（app 播放時傳入的是表記）。
@@ -49,7 +51,9 @@ def collect(n_vocab):
             me = t.get("role") == "me" if t.get("role") else t.get("spk") == d.get("me")
             add(t["ja"], sp=MAIN if me else OTHER)
     for r in load("reading"):
-        for s in r.get("body", []):
+        if r.get("kind") == "bunsho":  # 文章の文法：本文有空格，不錄
+            continue
+        for s in r.get("body", []):  # joho 只錄說明文（table 不錄）
             add(s["ja"])
     for g in load("grammar"):
         for e in g.get("examples", []):
@@ -71,6 +75,16 @@ def collect(n_vocab):
                 add(c)
         if q.get("jlpt") == "narabe" and q.get("full_ja"):
             add(q["full_ja"].replace("　", ""))
+        if q.get("jlpt") == "gaiyo":  # 概要理解：script（F＝冥鳴ひまり、M＝玄野武宏）＋聽完後的問題
+            for line in q.get("script", []):
+                add(line.get("ja"), sp=OTHER if line.get("spk") == "M" else MAIN)
+            add(q.get("stem"))
+        if q.get("jlpt") == "hatsuwa":  # 発話表現：情境（男聲旁白）＋3 個說法（女聲）
+            add(q.get("situation_ja"), sp=OTHER)
+            for c in q.get("choices", []):
+                add(c)
+        if q.get("jlpt") == "doukei":
+            add(q.get("stem"))
     add("こんにちは。日本語ふくしゅうへようこそ。")  # 設定頁の「テスト」
     for lv in ("vocab_n3", "vocab_n2"):
         for v in load(lv)[:n_vocab]:
@@ -99,23 +113,49 @@ def render(item):
     return 1
 
 
+def orphans(keys):
+    return sorted(p for p in OUT.glob("*.m4a") if p.stem not in keys)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--vocab", type=int, default=100000)
     ap.add_argument("--jobs", type=int, default=3)
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--prune", action="store_true")
     a = ap.parse_args()
     OUT.mkdir(exist_ok=True)
     texts = collect(a.vocab)
+    keys = {key(t) for t in texts}
+    if a.prune and a.vocab != ap.get_default("vocab"):
+        sys.exit("--prune 需用完整清單（不可與 --vocab 併用，否則會刪掉單字音檔）")
+    if a.dry_run:
+        todo = [t for t in texts if not (OUT / f"{key(t)}.m4a").exists()]
+        orph = orphans(keys)
+        print(f"文字 {len(texts)}，尚未錄音 {len(todo)}，孤兒音檔 {len(orph)}")
+        for t in todo[:10]:
+            print("  未錄：", t[:40])
+        for p in orph[:10] if not a.prune else orph:
+            print("  孤兒：", p.name)
+        return
+    if a.prune:
+        orph = orphans(keys)
+        for p in orph:
+            print("刪除：", p.name)
+        for p in orph:
+            p.unlink()
+        print(f"已刪除孤兒音檔 {len(orph)} 個")
     made = 0
     with ThreadPoolExecutor(a.jobs) as ex:
         for i, n in enumerate(ex.map(render, texts.items()), 1):
             made += n
             if i % 200 == 0:
                 print(f"{i}/{len(texts)}", file=sys.stderr)
-    keys = sorted(key(t) for t in texts)
-    (OUT / "manifest.json").write_text(json.dumps({"voice": CREDIT, "keys": keys}, separators=(",", ":")), encoding="utf-8")
-    size = sum(p.stat().st_size for p in OUT.glob("*.m4a")) / 1e6
-    print(f"文字 {len(texts)}，新產生 {made}，音檔合計 {size:.1f} MB")
+    keys = sorted(keys)
+    size = sum((OUT / f"{k}.m4a").stat().st_size for k in keys if (OUT / f"{k}.m4a").exists())
+    # bytes：app「全部音檔下載」顯示大小用
+    (OUT / "manifest.json").write_text(json.dumps({"voice": CREDIT, "bytes": size, "keys": keys}, separators=(",", ":")), encoding="utf-8")
+    print(f"文字 {len(texts)}，新產生 {made}，音檔合計 {size / 1e6:.1f} MB")
 
 
 if __name__ == "__main__":

@@ -6,7 +6,10 @@ import { settings, setSetting } from '../store.js';
 import { createSession } from '../session.js';
 import { markDay, dayKey } from '../srs.js';
 import { buildPlan } from '../plan.js';
+import { dlButton } from '../offline.js';
 
+// 題目本身的音檔（即時応答・発話表現・概要理解）
+const listenTexts = (q) => q.jlpt === 'sokuji' ? [q.prompt_ja, ...q.choices] : q.jlpt === 'hatsuwa' ? [q.situation_ja, ...q.choices] : q.jlpt === 'gaiyo' ? [...(q.script || []).map((l) => l.ja), q.stem] : [];
 const isMe = (d, t) => (t.role ? t.role === 'me' : t.spk === d.me);
 async function done() { await markDay(); await db.setMeta('dlg_done', dayKey()); }
 
@@ -67,6 +70,7 @@ export async function detail({ params }) {
     h('p', { lang: 'ja' }, d.situation_ja || ''), sz.btn ? h('div', null, sz.btn, sz.box) : null,
     h('div', { class: 'ctl-row' }, playBtn, speedSeg()),
     h('div', { class: 'ctl-row' }, h('a', { class: 'btn', href: `#/dialogue/${d.id}/roleplay` }, '🎭 ロールプレイ'), h('a', { class: 'btn', href: `#/dialogue/${d.id}/listening` }, '👂 聴解')),
+    dlButton(() => d.turns.map((t) => t.ja)),
     chat, h('div', { class: 'card-foot' }, flagBtn(d.id)));
 }
 
@@ -127,7 +131,8 @@ export async function listening({ params }) {
     if (!cards.length) { done(); return transcript(); }
     body.replaceChildren(createSession({ cards, srs: false, title: '聴解', finishButtons: [{ label: '文字起こしを見る', primary: true, onclick: transcript }], onFinish: () => done() }));
   } }, cards.length ? '問題へ' : '文字起こしを見る');
-  body.append(h('div', { class: 'card center' }, h('p', null, '👂 文字を見ずに聞きましょう'), h('div', { class: 'ctl-row' }, speedSeg()), play, toQ));
+  body.append(h('div', { class: 'card center' }, h('p', null, '👂 文字を見ずに聞きましょう'), h('div', { class: 'ctl-row' }, speedSeg()), play, toQ),
+    dlButton(() => [...d.turns.map((t) => t.ja), ...cards.flatMap((c) => listenTexts(c.data))]));
   return h('div', { class: 'page' }, pageHead('聴解 · ' + d.title, '#/dialogue/' + d.id), body);
 }
 
@@ -168,5 +173,6 @@ export async function listenOnly({ params }) {
     h('div', { class: 'set-row col' }, h('span', { class: 'muted' }, '続けて聞く数 / 連續播放段數'), segGroup(EAR_COUNTS, count, (v) => setSetting('earCount', v), '続けて聞く数')),
     h('div', { class: 'set-row col' }, h('span', { class: 'muted' }, '速さ / 語速'), speedSeg()),
     h('p', { class: 'muted small' }, '画面を消しても続けて再生します（音声ファイルがある場合）。/ 鎖屏也會繼續播放'),
-    h('div', { class: 'ctl-row' }, tog, other), text);
+    h('div', { class: 'ctl-row' }, tog, other),
+    dlButton(() => ds.flatMap((d) => d.turns.map((t) => t.ja)), '⤓ 全部の会話をダウンロード（オフライン用）/ 下載全部會話'), text);
 }

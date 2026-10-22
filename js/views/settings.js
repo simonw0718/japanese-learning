@@ -3,6 +3,7 @@ import { settings, setSetting, replaceSettings } from '../store.js';
 import * as db from '../db.js';
 import * as tts from '../tts.js';
 import * as speech from '../speech.js';
+import { allAudioSection } from '../offline.js';
 
 const sec = (title, ...kids) => h('section', { class: 'card set' }, h('h2', null, title), ...kids);
 const row = (label, ctl) => h('label', { class: 'set-row' }, h('span', null, label), ctl);
@@ -79,7 +80,9 @@ export async function settingsView() {
       voices.length ? row('予備の声 / 備用聲音', vSel) : null,
       h('button', { class: 'btn', type: 'button', onclick: () => tts.speak('こんにちは。日本語ふくしゅうへようこそ。') }, '🔊 テスト'),
       h('p', { class: 'muted small' }, '音声は VOICEVOX の録音のみ使います（端末の Apple 音声は使いません）。/ 只用 VOICEVOX 錄音，不用 Apple 系統語音')),
-    sec('学習 / 學習', range('newPerDay', '新しい単語（1日）/ 每日新單字', 0, 10, 1),
+    au.has ? sec('オフライン音声 / 離線音檔', allAudioSection()) : null,
+    sec('学習 / 學習', range('newPerWeekday', '新しい単語・平日（月〜金）/ 平日每日新單字', 0, 20, 1), range('newPerWeekend', '新しい単語・週末（土日）/ 週末每日新單字', 0, 20, 1),
+      h('p', { class: 'muted small' }, '朝4時で日付が変わります。復習が多い日は自動でお休みになります。/ 凌晨 4 點換日；複習太多時自動暫停新字'),
       segs('newLevel', [['N3', 'N3'], ['N2', 'N2'], ['MIX', '混合']], '新しい単語のレベル / 新單字等級'),
       toggle('listenCards', '聞き取りカード / 聽力卡'),
       h('p', { class: 'muted small' }, '覚えた単語（約1週間安定）は「聞いて意味を思い出す」カードも追加（1日5枚まで）/ 熟悉的單字加聽音卡')),

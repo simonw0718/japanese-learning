@@ -1,5 +1,6 @@
 // IndexedDB：cards / logs / meta / flags（無法使用時退回記憶體，不當機）
 import { FIXTURES } from './store.js';
+import { checkBackup, STORE_NAMES } from './backup.js';
 const NAME = FIXTURES ? 'jp-review-fixtures' : 'jp-review';
 const KP = { cards: 'item_id', meta: 'key' };
 const mem = { cards: new Map(), meta: new Map(), logs: [], flags: [] };
@@ -76,6 +77,18 @@ export async function replaceCards(puts, dels) {
 }
 export async function allCards() { return (await all('cards')).map(reviveCard); }
 export const addLog = (l) => put('logs', l);
+// 多 store 一次寫入（單一交易：全部成功或全部不變）。w={cards:[…], logs:[…], meta:[{key,value}]}
+export async function writeBatch(w) {
+  const stores = Object.keys(w).filter((k) => w[k] && w[k].length);
+  if (!stores.length) return;
+  const db = await open();
+  if (!db) { for (const s of stores) for (const v of w[s]) KP[s] ? mem[s].set(v[KP[s]], v) : mem[s].push(v); return; }
+  await new Promise((res, rej) => {
+    const t = db.transaction(stores, 'readwrite');
+    for (const s of stores) { const o = t.objectStore(s); for (const v of w[s]) o.put(v); }
+    t.oncomplete = () => res(); t.onabort = t.onerror = () => rej(t.error || new Error('abort'));
+  });
+}
 export const allLogs = () => all('logs');
 export async function getMeta(key, def = null) { const r = await get('meta', key); return r ? r.value : def; }
 export const setMeta = (key, value) => put('meta', { key, value });
@@ -87,17 +100,10 @@ export async function delFlag(key, obj) {
   return run('flags', 'readwrite', (o) => o.delete(key));
 }
 
-const STORE_NAMES = ['cards', 'logs', 'meta', 'flags'];
+export { checkBackup };
 const PRE = 'preImportBackup';
 export async function exportAll() {
   return { cards: await all('cards'), logs: await all('logs'), meta: (await all('meta')).filter((m) => m.key !== PRE), flags: await all('flags') };
-}
-// 匯入前檢查：必須是本 app 的備份（settings.js 匯出時寫入 app / version）
-export function checkBackup(d) {
-  if (!d || d.app !== 'japanese-learning') throw new Error('このアプリのバックアップではありません / 不是本 app 的備份');
-  if (d.version !== 1) throw new Error(`対応していない版です（version ${d.version}）/ 不支援的備份版本`);
-  if (!STORE_NAMES.every((k) => d[k] == null || Array.isArray(d[k])) || !Array.isArray(d.cards)) throw new Error('形式が違います / 格式錯誤');
-  if (!d.cards.every((c) => c && c.item_id && c.card) || !(d.meta || []).every((m) => m && m.key)) throw new Error('データが壊れています / 資料損毀');
 }
 // 復元：先把目前進度存成 meta 'preImportBackup'，再於單一交易內清空＋寫入（失敗則全部不變）
 export async function importAll(d, extra = {}) {

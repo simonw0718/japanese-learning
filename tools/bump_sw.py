@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """更新 sw.js：重寫 SHELL_FILES（外殼檔清單）並把 VERSION 設為內容雜湊。
 
-用法：python3 tools/bump_sw.py
+用法：python3 tools/bump_sw.py [--check]
+- --check：不寫檔；sw.js 不是最新（或 import 缺檔）→ exit 1（pre-commit、validate.py 用）
 - 掃描 index.html、app.css、manifest.webmanifest、vendor/、icons/、js/**/*.js
 - VERSION = <外殼檔＋data（依 data/manifest.json）＋audio/manifest.json 的 sha1 前 8 碼>-a<n>
   （-a<n> 為音檔快取版本，沿用原值；要清掉使用者已下載的音檔才手動 +1）
@@ -51,7 +52,8 @@ def data_files():
     return out
 
 
-def main():
+def compute():
+    """回傳 (目前 sw.js, 應有的 sw.js, version, import 缺檔清單)"""
     files = shell_files()
     bad = check_imports(files)
     h = hashlib.sha1()
@@ -77,6 +79,25 @@ def main():
     block = "\n ".join(lines)
     sw2 = re.sub(r"const SHELL_FILES = \[.*?\];", lambda _: block, sw, count=1, flags=re.S)
     sw2 = sw2.replace(m.group(0), f"const VERSION = '{version}';", 1)
+    return sw, sw2, version, bad
+
+
+def check():
+    """sw.js 是否最新：回傳錯誤訊息清單（空＝最新）"""
+    sw, sw2, version, bad = compute()
+    out = [f"import 的檔案不在外殼清單：{b}" for b in bad]
+    if sw2 != sw:
+        cur = re.search(r"const VERSION = '([^']*)';", sw).group(1)
+        out.append(f"sw.js 不是最新（VERSION {cur} → {version}）：請執行 python3 tools/bump_sw.py")
+    return out
+
+
+def main():
+    if "--check" in sys.argv:
+        msgs = check()
+        print("\n".join(msgs) if msgs else "sw.js 已是最新", file=sys.stderr if msgs else sys.stdout)
+        sys.exit(1 if msgs else 0)
+    sw, sw2, version, bad = compute()
     if bad:  # 有缺檔就不改 sw.js
         print("import 的檔案不在外殼清單：", *bad, sep="\n  ", file=sys.stderr)
         sys.exit(1)

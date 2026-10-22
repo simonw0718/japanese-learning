@@ -3,16 +3,20 @@ import { h, pageHead, empty, segGroup, bar, zhToggle } from '../ui.js';
 import * as D from '../data.js';
 import * as db from '../db.js';
 import { settings, setSetting } from '../store.js';
-import { createSession, JLPT_NAME, stemHtml } from '../session.js';
+import { createSession, JLPT_NAME, stemHtml, blankHtml } from '../session.js';
 import { genKanjiYomi, genHyoki } from '../logic.js';
-import { shuffle, markDay } from '../srs.js';
+import { shuffle, markDay, dayKey } from '../srs.js';
 import { esc, rubyHtml } from '../ruby.js';
 
-// 題型 → 科目（得点区分：言語知識／読解／聴解）
+// 題型 → 科目（得点区分：言語知識／読解／聴解）。順序＝試験の順。doukei は練習専用（模試・得点に入れない）
 const TYPES = [
-  ['kanji_yomi', 'moji'], ['hyoki', 'moji'], ['bunmyaku', 'moji'], ['iikae', 'moji'], ['yoho', 'moji'],
-  ['keishiki', 'bunpo'], ['narabe', 'bunpo'], ['naiyo', 'dokkai'], ['sokuji', 'chokai'], ['point', 'chokai'],
+  ['kanji_yomi', 'moji'], ['hyoki', 'moji'], ['gokeisei', 'moji'], ['bunmyaku', 'moji'], ['iikae', 'moji'], ['yoho', 'moji'], ['doukei', 'moji'],
+  ['keishiki', 'bunpo'], ['narabe', 'bunpo'], ['bunsho', 'bunpo'], ['naiyo', 'dokkai'], ['joho', 'dokkai'],
+  ['point', 'chokai'], ['gaiyo', 'chokai'], ['hatsuwa', 'chokai'], ['sokuji', 'chokai'],
 ];
+const PRACTICE_ONLY = new Set(['doukei']);
+// 本文単位でまとめて出す題型（同じ文章の問題を続けて出す）
+const PASSAGE = new Set(['naiyo', 'joho', 'bunsho']);
 const GROUP = { moji: '文字・語彙', bunpo: '文法', dokkai: '読解', chokai: '聴解' };
 const SCORE = { moji: 'gengo', bunpo: 'gengo', dokkai: 'dokkai', chokai: 'chokai' };
 const SCORE_NAME = { gengo: '言語知識（文字・語彙・文法）', dokkai: '読解', chokai: '聴解' };
@@ -33,21 +37,25 @@ async function bank(lv) {
     if (!t || (t === 'keishiki' && !isKeishiki(q))) continue;
     (by[t] ||= []).push(q);
   }
-  // 読解・聴解：本文／会話ごとにまとめる
+  // 読解・聴解：本文／会話ごとにまとめる（文章の文法は空欄順）
   const groups = (t, map) => {
     const m = new Map();
     for (const q of by[t] || []) { const src = map.get((q.target || [])[0]); if (src) { if (!m.has(src.id)) m.set(src.id, { src, qs: [] }); m.get(src.id).qs.push(q); } }
-    return [...m.values()];
+    const out = [...m.values()];
+    out.forEach((g) => g.qs.sort((a, x) => (a.blank || 0) - (x.blank || 0)));
+    return out;
   };
-  return { vocab, vLv, by, reading: groups('naiyo', rMap), listening: groups('point', dMap) };
+  return { vocab, vLv, by, reading: groups('naiyo', rMap), joho: groups('joho', rMap), bunsho: groups('bunsho', rMap), listening: groups('point', dMap) };
 }
-const count = (b, t) => (t === 'kanji_yomi' || t === 'hyoki' ? b.vLv.length : t === 'naiyo' ? (b.by.naiyo || []).length : t === 'point' ? (b.by.point || []).length : (b.by[t] || []).length);
+const gen = (t) => t === 'kanji_yomi' || t === 'hyoki';
+const count = (b, t) => (gen(t) ? b.vLv.length : PASSAGE.has(t) || t === 'point' ? groupsOf(b, t).reduce((a, g) => a + g.qs.length, 0) : (b.by[t] || []).length);
+const groupsOf = (b, t) => (t === 'naiyo' ? b.reading : t === 'point' ? b.listening : b[t] || []);
 
 // 最近出た題を後回し（meta jlpt_seen）
 async function seenMap() { return (await db.getMeta('jlpt_seen', {})) || {}; }
 const fresh = (arr, seen, idOf = (x) => x.id) => shuffle(arr).sort((a, b) => (seen[idOf(a)] || 0) - (seen[idOf(b)] || 0));
 const card = (q, extra) => ({ kind: 'quiz', id: q.id, data: q, ...extra });
-const passageCards = (g) => g.qs.map((q) => card(q, { passage: g.src.body, passageTitle: g.src.title }));
+const passageCards = (g) => g.qs.map((q) => card(q, { passage: g.src.body, table: g.src.table, bunsho: g.src.kind === 'bunsho', passageTitle: g.src.title }));
 const audioCards = (g) => g.qs.map((q) => card(q, { audio: g.src.turns.map((t) => t.ja) }));
 
 // n 題を作る（題型ごと）
@@ -60,10 +68,10 @@ function makeCards(b, t, n, seen) {
     for (const v of pool) { if (out.length >= n) break; const q = gen(v, b.vocab); if (q) out.push(card(q)); }
     return out;
   }
-  if (t === 'naiyo' || t === 'point') {
-    const gs = fresh(t === 'naiyo' ? b.reading : b.listening, seen, (g) => g.qs[0].id);
+  if (PASSAGE.has(t) || t === 'point') {
+    const gs = fresh(groupsOf(b, t), seen, (g) => g.qs[0].id);
     const out = [];
-    for (const g of gs) { if (out.length >= n) break; out.push(...(t === 'naiyo' ? passageCards(g) : audioCards(g))); }
+    for (const g of gs) { if (out.length >= n) break; out.push(...(t === 'point' ? audioCards(g) : passageCards(g))); }
     return out;
   }
   return fresh(b.by[t] || [], seen).slice(0, n).map((q) => card(q));
@@ -89,7 +97,7 @@ export async function top() {
   const row = (t) => {
     const n = count(b, t), st = (stats || {})[`${lv}:${t}`];
     return h('li', null, h(n ? 'a' : 'div', { class: 'row-link' + (n ? '' : ' locked'), href: n ? `#/jlpt/${lv}/drill/${t}` : null },
-      h('span', { class: 'row-main' }, h('b', null, JLPT_NAME[t]), h('small', null, n ? `${n}問` + (st ? ` ・ 正答率 ${Math.round((st[0] / st[1]) * 100)}%（${st[1]}問）` : '') : 'まだ問題がありません')),
+      h('span', { class: 'row-main' }, h('b', null, JLPT_NAME[t] + (PRACTICE_ONLY.has(t) ? '（練習）' : '')), h('small', null, n ? `${n}問` + (st ? ` ・ 正答率 ${Math.round((st[0] / st[1]) * 100)}%（${st[1]}問）` : '') + (PRACTICE_ONLY.has(t) ? ' ・ 中日同形・模試には出ません' : '') : 'まだ問題がありません')),
       n ? h('span', { class: 'row-side' }, '›') : null));
   };
   const last = (hist || []).filter((x) => x.lv === lv).slice(-5).reverse();
@@ -97,7 +105,8 @@ export async function top() {
     h('div', { class: 'set-row col' }, h('span', { class: 'muted' }, 'レベル / 等級'), segGroup([['N3', 'N3'], ['N2', 'N2']], lvNow, (v) => { setSetting('jlptLevel', v); location.reload(); }, 'JLPT レベル')),
     h('a', { class: 'btn primary big cont', href: `#/jlpt/${lv}/mini` }, h('b', null, 'ミニ模試'), h('small', null, `約20問・25分・科目別の点数 / ${lv} 迷你模擬考`)),
     h('p', { class: 'muted small' }, '題型練習：10問ずつ、すぐに答えと解説が出ます / 每次 10 題，立即看解說'),
-    Object.entries(GROUP).map(([g, name]) => h('section', null, h('h3', null, name), h('ul', { class: 'list' }, TYPES.filter(([, x]) => x === g).map(([t]) => row(t))))),
+    // データのない題型は表示しない
+    Object.entries(GROUP).map(([g, name]) => { const ts = TYPES.filter(([t, x]) => x === g && count(b, t) > 0); return ts.length ? h('section', null, h('h3', null, name), h('ul', { class: 'list' }, ts.map(([t]) => row(t)))) : null; }),
     last.length ? h('section', null, h('h3', null, 'ミニ模試の記録'), h('ul', { class: 'list' }, last.map((r) => h('li', { class: 'row-link' },
       h('span', { class: 'row-main' }, h('b', null, `${r.total} / 180 点（目安）`), h('small', null, new Date(r.ts).toLocaleDateString('ja-JP') + ' ・ ' + Object.keys(SCORE_NAME).map((k) => `${SCORE_NAME[k].slice(0, 4)} ${r.sec[k] ?? '-'}`).join(' / '))),
       h('span', { class: 'row-side' + (r.pass ? ' ok' : '') }, r.pass ? '合格圏' : 'もう少し'))))) : null,
@@ -121,7 +130,9 @@ export async function drill({ params }) {
 }
 
 // ---- ミニ模試 ----
-const MINI = [['kanji_yomi', 2], ['hyoki', 2], ['bunmyaku', 2], ['iikae', 1], ['yoho', 1], ['keishiki', 4], ['narabe', 2], ['naiyo', 1], ['sokuji', 3], ['point', 1]];
+// 読解・聴解・文章の文法は「本文1つ分」。データのない題型は自動で抜ける。doukei は入れない
+const MINI = [['kanji_yomi', 2], ['hyoki', 2], ['gokeisei', 1], ['bunmyaku', 2], ['iikae', 1], ['yoho', 1], ['keishiki', 3], ['narabe', 2], ['bunsho', 1],
+  ['naiyo', 1], ['joho', 1], ['point', 1], ['gaiyo', 1], ['hatsuwa', 1], ['sokuji', 2]];
 export async function mini({ params }) {
   const lv = params.lv.toUpperCase();
   const wrap = h('div', { class: 'page' }, pageHead(`ミニ模試（${lv}）`, '#/jlpt'));
@@ -179,10 +190,41 @@ function result(lv, cards, res) {
 function review(c) {
   const q = c.data;
   const z = zhToggle(q.explain_zh);
-  const html = q.jlpt === 'sokuji' ? esc(q.prompt_ja) : q.full_ja ? esc(q.full_ja.replace(/　/g, '')) : stemHtml(q);
+  const bl = q.jlpt === 'bunsho' && (c.passage || []).find((p) => p.ja.includes(`［${String.fromCharCode(0xFF10 + q.blank)}］`));
+  const html = q.jlpt === 'sokuji' ? esc(q.prompt_ja) : q.jlpt === 'hatsuwa' ? esc(q.situation_ja) : bl ? blankHtml(esc(bl.ja), q.blank) : q.full_ja ? esc(q.full_ja.replace(/　/g, '')) : stemHtml(q);
   return h('div', { class: 'card mis' },
     h('small', { class: 'muted' }, JLPT_NAME[c.jt]),
     h('p', { lang: 'ja', class: 'stem-sm', html }),
-    h('p', { class: 'right', lang: 'ja' }, '✓ ', h('span', { html: q.choices_ruby && settings().furigana ? rubyHtml(q.choices_ruby[q.answer]) : esc(q.choices[q.answer]) })),
+    h('p', { class: 'right', lang: q.choices_lang === 'zh' ? 'zh-Hant' : 'ja' }, '✓ ', h('span', { html: q.choices_ruby && settings().furigana ? rubyHtml(q.choices_ruby[q.answer]) : esc(q.choices[q.answer]) })),
     q.explain_ja ? h('p', { class: 'muted', lang: 'ja' }, q.explain_ja) : null, z.btn, z.box);
+}
+
+// ---- 今日の JLPT 3問（ホームの1ステップ）：本文なしで解ける題型からランダムに3問（doukei を含む）----
+const DAILY_TYPES = ['kanji_yomi', 'hyoki', 'gokeisei', 'bunmyaku', 'iikae', 'yoho', 'doukei', 'keishiki', 'narabe', 'gaiyo', 'hatsuwa', 'sokuji'];
+export const dailyDone = async () => (await db.getMeta('jlpt3_done')) === dayKey();
+export async function dailyCards(lv = lvNow(), n = 3) {
+  const b = await bank(lv);
+  const seen = await seenMap();
+  const types = shuffle(DAILY_TYPES.filter((t) => count(b, t) > 0));
+  const out = [];
+  for (let k = 0; out.length < n && k < types.length * n; k++) {
+    const t = types[k % types.length];
+    const c = makeCards(b, t, 1 + Math.floor(k / types.length), seen).find((x) => !out.some((o) => o.id === x.id));
+    if (c) out.push({ ...c, jt: t });
+  }
+  return out;
+}
+export async function daily() {
+  const lv = lvNow();
+  const wrap = h('div', { class: 'page' }, pageHead(`今日の JLPT 3問（${lv}）`, '#/home'));
+  const cards = await dailyCards(lv);
+  if (!cards.length) { wrap.append(empty('まだ問題がありません。'), h('a', { class: 'btn primary', href: '#/home' }, 'ホームへ')); return wrap; }
+  const res = [];
+  await markSeen(cards);
+  wrap.append(h('p', { class: 'muted small' }, 'いろいろな題型から3問。答えるとすぐ解説が出ます / 隨機 3 題，作答後立即看解說'),
+    createSession({ cards, srs: false, title: 'JLPT 3問',
+      onAnswer: (c, name) => res.push([c.jt, name !== 'again']),
+      onFinish: async () => { await markDay(); await db.setMeta('jlpt3_done', dayKey()); addStats(lv, res); },
+      finishButtons: [{ label: 'ホームへ', href: '#/home', primary: true }, { label: 'JLPT 対策へ', href: '#/jlpt' }] }));
+  return wrap;
 }
