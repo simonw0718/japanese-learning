@@ -9,7 +9,9 @@
     ],
     "vocab_extra": [
       "vocab_extra_n3_1.json",
-      "vocab_extra_n3_2.json"
+      "vocab_extra_n3_2.json",
+      "vocab_extra_n2_1.json",
+      "vocab_extra_n2_2.json"
     ],
     "grammar": [
       "grammar_n3.json",
@@ -18,7 +20,11 @@
       "grammar_n3_b.json",
       "grammar_n3_c.json",
       "grammar_n2_d.json",
-      "grammar_n2_e.json"
+      "grammar_n2_e.json",
+      "grammar_f.json",
+      "grammar_g.json",
+      "grammar_h.json",
+      "grammar_i.json"
     ],
     "quiz": [
       "quiz_grammar.json",
@@ -35,7 +41,17 @@
       "quiz_jlpt_iikae.json",
       "quiz_jlpt_yoho.json",
       "quiz_jlpt_narabe.json",
-      "quiz_jlpt_sokuji.json"
+      "quiz_jlpt_sokuji.json",
+      "quiz_grammar_f.json",
+      "quiz_grammar_g.json",
+      "quiz_grammar_h.json",
+      "quiz_grammar_i.json",
+      "quiz_reading_03.json",
+      "quiz_reading_04.json",
+      "quiz_jlpt_gaiyo.json",
+      "quiz_jlpt_hatsuwa.json",
+      "quiz_jlpt_gokeisei.json",
+      "quiz_jlpt_doukei.json"
     ],
     "dialogues": [
       "dialogues_01.json",
@@ -43,7 +59,9 @@
     ],
     "reading": [
       "reading_01.json",
-      "reading_02.json"
+      "reading_02.json",
+      "reading_03.json",
+      "reading_04.json"
     ]
   }
 }

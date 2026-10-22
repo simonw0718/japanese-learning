@@ -107,3 +107,24 @@
 - **narabe**：`stem` 用 `＿＿＿` 表示空格、`＿★＿` 表示星號格，共 4 格、★ 恰 1 個；`choices`＝4 個片段；`order`＝正確語序的 choices 索引（長度 4）；`answer`＝★格那個片段的索引（＝`order[★在第幾格]`）；`full_ja`＝完整正確句（把格子依 order 填回 stem 的結果）；`full_ruby`。
 - **sokuji**：`prompt_ja`／`prompt_ruby`＝聽到的一句話（男聲）；`choices`＝3 個回應（女聲），`choices_ruby` 必填；`answer` 0–2；`stem` 可省。音檔由 tools/build_audio.py 產生。
 - ID：`q-j-<jlpt>-<n3|n2>-NNN`（例：`q-j-bunmyaku-n3-001`）。檔名：`data/quiz_jlpt_<jlpt>.json`。
+
+## v1.4 新增（新題型與讀解種類）
+
+### reading 追加欄位
+- `kind`（可省）：`"long"`＝長文（N2 700–900 字）｜`"joho"`＝情報検索｜`"bunsho"`＝文章の文法。省略＝一般讀解。
+- ID：`r-long-n2-NNN`、`r-joho-<n3|n2>-NNN`、`r-bunsho-<n3|n2>-NNN`。
+- **joho**：`table`＝`{"caption":"…","cols":["…"],"rows":[["…"]]}`（純文字，不加 ruby）；`body` 放說明文／注意事項。
+- **bunsho**：`body` 的 `ja`／`ruby` 內以 `［１］`〜`［５］`（全形）標空格；空格處不放任何字。app 依題目 `blank` 把該空格標示出來。build_audio 不錄 bunsho 本文。
+
+### quiz 追加題型（`jlpt` 值）
+| jlpt | 名稱 | skill | 選項 | 欄位 |
+|---|---|---|---|---|
+| gokeisei | 語形成 | vocab | 4 | stem 含（　　），choices＝接頭／接尾語或複合語的一部分；target `[]` |
+| bunsho | 文章の文法 | grammar | 4 | `target:[r-bunsho-…]`、`blank`（1–5）；stem＝`［１］`；choices 可附 `choices_ruby` |
+| joho | 情報検索 | reading | 4 | `target:[r-joho-…]` |
+| gaiyo | 概要理解 | listening | 4 | `script:[{"spk":"F"或"M","ja","ruby"}]`（獨白或短對談，F＝冥鳴ひまり、M＝玄野武宏）；`stem`／`stem_ruby`＝聽完後的問題；choices（不錄音）；target `[]` |
+| hatsuwa | 発話表現（N3） | listening | **3** | `situation_ja`／`situation_ruby`（畫面顯示＋錄音）；choices＝3 句話（錄音）、`choices_ruby` 必填；target `[]` |
+| doukei | 中日同形異義（練習專用，不進模試） | vocab | 4 | stem／stem_ruby＝日文句；`u`＝考的詞（恰出現一次）；choices＝**繁中**意思；`choices_lang:"zh"`；target＝單字 id 或 `[]` |
+
+- 長文讀解題沿用 `skill:"reading"`（jlpt 省略＝naiyo），`target:[r-long-…]`。
+- ID 一律 `q-j-<jlpt>-<n3|n2>-NNN`；長文題 `q-r-long-n2-NNN-k`。
