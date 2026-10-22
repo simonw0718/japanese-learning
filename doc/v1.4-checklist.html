@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>v1.4 iPhone 実測</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* 單欄清單：分區標題＋可勾選列，進度條固定在頂 */
+:root{
+  --bg:#f6f7f5; --card:#ffffff; --fg:#1d2420; --mute:#66706a; --line:#dde2dd; --accent:#2f6f5a; --done:#9aa59f;
+  --f:"Zen Kaku Gothic New","Hiragino Sans","PingFang TC",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141816;--card:#1c211e;--fg:#e6ebe7;--mute:#9aa59f;--line:#2c3430;--accent:#6fbf9f;--done:#5d6862;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141816;--card:#1c211e;--fg:#e6ebe7;--mute:#9aa59f;--line:#2c3430;--accent:#6fbf9f;--done:#5d6862;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f);font-size:16px;line-height:1.55}
+.wrap{max-width:640px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+h1{font-size:1.4rem;margin:0;text-wrap:balance}
+.sub{color:var(--mute);font-size:.9rem;margin:4px 0 0}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:8px;z-index:5}
+.track{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.fill{height:100%;background:var(--accent);width:0;transition:width .2s}
+.count{font-size:.85rem;color:var(--mute);margin-top:4px;font-variant-numeric:tabular-nums}
+section{display:flex;flex-direction:column;gap:6px}
+h2{font-size:1rem;margin:0;color:var(--accent);letter-spacing:.02em}
+.how{font-size:.85rem;color:var(--mute);margin:0 0 2px}
+label{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;cursor:pointer}
+input[type=checkbox]{width:22px;height:22px;margin:1px 0 0;accent-color:var(--accent);flex:none}
+label span{min-width:0}
+label small{display:block;color:var(--mute);font-size:.82rem}
+input:checked+span{color:var(--done);text-decoration:line-through}
+input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:12px;font-size:.9rem}
+.note b{color:var(--accent)}
+button{font:inherit;background:none;border:1px solid var(--line);color:var(--mute);border-radius:6px;padding:6px 12px;align-self:flex-start}
+</style>
+<div class="wrap">
+  <header>
+    <h1>v1.4 iPhone 實測清單</h1>
+    <p class="sub">一週內做完即可。打勾會存在這支手機上。有怪的地方，回來跟我說一句話就好。</p>
+  </header>
+  <div class="bar"><div class="track"><div class="fill" id="fill"></div></div><div class="count" id="count"></div></div>
+
+  <section>
+    <h2>① 開機與更新（第 1 天，3 分鐘）</h2>
+    <label><input type="checkbox" id="c1"><span>主畫面開 app，看到 v1.4 新內容<small>沒看到 → 關掉 app 再開一次</small></span></label>
+    <label><input type="checkbox" id="c2"><span>有跳出「有新版」提示，按下後正常重載</span></label>
+    <label><input type="checkbox" id="c3"><span>首頁有「JLPT 3問」，點得進去</span></label>
+    <label><input type="checkbox" id="c4"><span>設定裡新字：平日 8／週末 15，可以改</span></label>
+  </section>
+
+  <section>
+    <h2>② 新題型（每種做 2–3 題）</h2>
+    <p class="how">看：題目顯示完整、選項不跑版、答案合理、沒有漢字讀音（ruby）亂跑。</p>
+    <label><input type="checkbox" id="q1"><span>語形成（gokeisei）</span></label>
+    <label><input type="checkbox" id="q2"><span>文章の文法（bunsho）</span></label>
+    <label><input type="checkbox" id="q3"><span>情報検索（表格題）<small>表格在手機上能左右滑、看得清楚</small></span></label>
+    <label><input type="checkbox" id="q4"><span>概要理解（聽一段獨白）</span></label>
+    <label><input type="checkbox" id="q5"><span>発話表現</span></label>
+    <label><input type="checkbox" id="q6"><span>即時応答（干擾選項重寫過）</span></label>
+    <label><input type="checkbox" id="q7"><span>中日同形異義（doukei）</span></label>
+    <label><input type="checkbox" id="q8"><span>N2 長文讀解（一篇 700–900 字）<small>長文捲動順、字不會太小</small></span></label>
+  </section>
+
+  <section>
+    <h2>③ 聲音與耳だけ（10–15 分鐘）</h2>
+    <label><input type="checkbox" id="a1"><span>例句播放是 VOICEVOX 的聲音（不是 iPhone 系統音）</span></label>
+    <label><input type="checkbox" id="a2"><span>會話題：兩個人聲音不同（ひまり＋武宏）</span></label>
+    <label><input type="checkbox" id="a3"><span>耳だけ連播 → 鎖屏 → 持續播 10 分鐘以上沒停</span></label>
+    <label><input type="checkbox" id="a4"><span>鎖屏畫面的暫停／下一首按鈕能用</span></label>
+    <label><input type="checkbox" id="a5"><span>按「この課の音声をダウンロード」→ 開飛航模式 → 還能播</span></label>
+    <label><input type="checkbox" id="a6"><span>沒下載就斷網時，有出現離線提示</span></label>
+  </section>
+
+  <section>
+    <h2>④ 每日複習與備份（平常用即可）</h2>
+    <label><input type="checkbox" id="r1"><span>連續 3 天正常複習，進度沒消失</span></label>
+    <label><input type="checkbox" id="r2"><span>凌晨 4 點後換日，新的一天卡片有刷新</span></label>
+    <label><input type="checkbox" id="r3"><span>新單字有中文意思＋例句（N2 前 1000 字）</span></label>
+    <label><input type="checkbox" id="r4"><span>匯出備份 → 再匯入，資料一樣</span></label>
+  </section>
+
+  <section>
+    <h2>⑤ 給 v2 的回饋（一週後）</h2>
+    <div class="note">回報時說：<b>哪一項不對＋發生什麼</b>。例：「③-3 鎖屏 5 分鐘就停」。<br>順便說你最想要哪個：<b>輸出練習／弱點清單／FSRS 最佳化</b>。</div>
+  </section>
+
+  <button id="reset" type="button">全部取消勾選</button>
+</div>
+<script>
+const KEY="v14check";
+const boxes=[...document.querySelectorAll('input[type=checkbox]')];
+let saved={};
+try{saved=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+boxes.forEach(b=>{b.checked=!!saved[b.id];b.addEventListener('change',update)});
+function update(){
+  const s={};boxes.forEach(b=>{if(b.checked)s[b.id]=1});
+  try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}
+  const n=Object.keys(s).length;
+  document.getElementById('fill').style.width=(n/boxes.length*100)+'%';
+  document.getElementById('count').textContent=`${n} / ${boxes.length} 項完成`;
+}
+document.getElementById('reset').addEventListener('click',()=>{boxes.forEach(b=>b.checked=false);update()});
+update();
+</script>
+
+</html>
