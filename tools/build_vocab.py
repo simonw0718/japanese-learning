@@ -95,6 +95,8 @@ SURFACE_FIX = {
     "v-n2-fc2789": ("率直", "そっちょく", "な形容詞"), "v-n2-d3c29d": ("田んぼ", "たんぼ", "名詞"),
     "v-n2-639d6f": ("しいんと", "しいんと", "副詞"), "v-n2-d7eedf": ("しわ", "しわ", "名詞"),
 }
+# 原始表記帶註記、清乾淨後和既有卡重複（下品(な)、紅葉 こうよう 第二筆、四角 已在 N3）→ 不出卡
+DUP_IDS = {"v-n2-da8f8a", "v-n2-b68048", "v-n2-9a574d"}
 
 
 def build(level, csv_name, common, exclude=set(), basic=(set(), set()), zcache=None):
@@ -139,6 +141,7 @@ def build(level, csv_name, common, exclude=set(), basic=(set(), set()), zcache=N
         rows = [x for x in rows if by_surface[(x["surface"], sense(x))] is x]
     else:
         rows.sort(key=lambda x: (not x["common"]))  # stable: 常用語在前，其餘維持原順序
+    rows = [x for x in rows if x["id"] not in DUP_IDS]
     for i, x in enumerate(rows):
         x["batch"] = i // BATCH + 1
         if x["id"] in SURFACE_FIX:
