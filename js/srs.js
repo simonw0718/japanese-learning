@@ -64,10 +64,11 @@ export async function awayDays() {
   return prev ? dayDiff(prev, today) : null;
 }
 // 今天的閘門：當天第一次開啟時決定並存進 meta，整天固定不變
-export async function todayGate(due) {
+// persist=false：資料沒載完整（離線／讀檔失敗）時只算不存，避免把錯的閘門鎖一整天
+export async function todayGate(due, persist = true) {
   const day = dayKey();
   let g = await db.getMeta('gateDay');
-  if (!g || g.day !== day) { const away = await awayDays(); g = { day, away, due0: due, ...loadGate(due, away) }; await db.setMeta('gateDay', g); }
+  if (!g || g.day !== day) { const away = await awayDays(); g = { day, away, due0: due, ...loadGate(due, away) }; if (persist) await db.setMeta('gateDay', g); }
   return g;
 }
 // 負載閘門（SPEC §2）

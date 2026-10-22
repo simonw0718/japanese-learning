@@ -40,7 +40,7 @@ export async function buildPlan() {
     || (c.kind === 'listen' && listenOn && vMap.has(baseId(c.item_id)));
   const eod = endOfDay();
   const due = cards.filter(valid).filter((c) => c.card.due.getTime() <= eod).sort((a, b) => a.card.due - b.card.due);
-  const gate = await todayGate(due.length);
+  const gate = await todayGate(due.length, D.loadOk() && vocab.length > 0 && quizzes.length > 0);
   const away = gate.away;
   const today = await daily(); // 今日已複習幾張（每日上限，非每次 session）
   const remaining = Math.max(0, gate.cap - today.reviewed);

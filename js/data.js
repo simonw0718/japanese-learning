@@ -3,17 +3,19 @@ import { FIXTURES } from './store.js';
 const base = FIXTURES ? 'tools/fixtures/' : 'data/';
 const cache = {};
 let manifest = null;
+const failed = new Set(); // 讀取失敗的檔（離線未快取等）
+export const loadOk = () => failed.size === 0;
 async function getJson(url) { const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json(); }
 // data/manifest.json 列出每個 set 由哪些檔組成；fixtures 模式仍是一個 set 一個檔
 async function filesOf(name) {
   if (FIXTURES) return [name + '.json'];
-  if (!manifest) { try { manifest = (await getJson(base + 'manifest.json')).sets || {}; } catch (e) { manifest = {}; } }
+  if (!manifest) { try { manifest = (await getJson(base + 'manifest.json')).sets || {}; } catch (e) { manifest = {}; failed.add('manifest.json'); } }
   return manifest[name] || [];
 }
 export async function load(name) {
   if (cache[name]) return cache[name];
   cache[name] = (async () => {
-    const parts = await Promise.all((await filesOf(name)).map((f) => getJson(base + f).then((d) => (Array.isArray(d.items) ? d.items : [])).catch(() => [])));
+    const parts = await Promise.all((await filesOf(name)).map((f) => getJson(base + f).then((d) => (Array.isArray(d.items) ? d.items : [])).catch(() => { failed.add(f); return []; })));
     return parts.flat();
   })();
   return cache[name];

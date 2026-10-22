@@ -80,6 +80,22 @@ def cached_zipf():
     return z
 
 
+# 原始清單的表記混入註記（「(かん)」「(な)」「(～がはえる)」）：顯示用改乾淨；id 仍依原始 surface+reading 計算，進度不變
+SURFACE_FIX = {
+    "v-n3-fff432": ("しまった", "しまった", "感動詞"), "v-n3-18e2d3": ("よろしく", "よろしく", "感動詞"),
+    "v-n3-9ae1e1": ("すみません", "すみません", "感動詞"), "v-n3-03172b": ("はあ", "はあ", "感動詞"),
+    "v-n3-e791d5": ("ある", "ある", "動詞"), "v-n2-5c3c3e": ("それはいけませんね", "それはいけませんね", "感動詞"),
+    "v-n2-725247": ("はい", "はい", "感動詞"), "v-n2-4eac40": ("ミリ", "ミリ", "名詞"),
+    "v-n2-e20f6d": ("失礼しました", "しつれいしました", "感動詞"), "v-n2-fbe48a": ("しめた", "しめた", "感動詞"),
+    "v-n2-ad3cf8": ("アイデア", "アイデア", "名詞"), "v-n2-da8f8a": ("下品", "げひん", "な形容詞"),
+    "v-n2-bb1488": ("どういたしまして", "どういたしまして", "感動詞"), "v-n2-32c1fc": ("朗らか", "ほがらか", "な形容詞"),
+    "v-n2-568482": ("じゅうたん", "じゅうたん", "名詞"), "v-n2-f3b305": ("第一", "だいいち", "副詞"),
+    "v-n2-b68048": ("紅葉", "こうよう", "名詞"), "v-n2-401687": ("かび", "かび", "名詞"),
+    "v-n2-9a574d": ("四角", "しかく", "名詞"), "v-n2-91e09b": ("差す", "さす", "動詞"),
+    "v-n2-639d6f": ("しいんと", "しいんと", "副詞"), "v-n2-d7eedf": ("しわ", "しわ", "名詞"),
+}
+
+
 def build(level, csv_name, common, exclude=set(), basic=(set(), set()), zcache=None):
     rows, seen, dropped = [], set(), []
     with open(RAW / csv_name, encoding="utf-8") as f:
@@ -124,6 +140,8 @@ def build(level, csv_name, common, exclude=set(), basic=(set(), set()), zcache=N
         rows.sort(key=lambda x: (not x["common"]))  # stable: 常用語在前，其餘維持原順序
     for i, x in enumerate(rows):
         x["batch"] = i // BATCH + 1
+        if x["id"] in SURFACE_FIX:
+            x["surface"], x["reading"], x["pos"] = SURFACE_FIX[x["id"]]
     return rows, seen, dropped
 
 
