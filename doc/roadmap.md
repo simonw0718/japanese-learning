@@ -22,7 +22,7 @@
 | N5 | 文法擴充：N3 對齊 TRY 全量（約 86 點）、N2 再加 30 點 | 課綱覆蓋 | L | ✅ N3 66 點、N2 40 點（Fable／Opus 審） |
 | N6 | 會話、讀解各增加到 10 篇 | 聽讀量不足 | L | ✅ 會話 10、讀解 10 |
 | N7 | 資料分檔＋SW 版本自動化（`tools/bump_sw.py`） | 內容成長 10 倍時首頁變慢；免手動改版號 | S | ✅ manifest 分檔＋tools/bump_sw.py |
-| N8 | 部署 GitHub Pages（教科書 PDF 移出 repo） | 手機隨時用 | S | ⏸ 待使用者決定（公開 repo、音檔授權） |
+| N8 | 部署 GitHub Pages（教科書 PDF 移出 repo） | 手機隨時用 | S | ✅ 2026-10-22 公開 repo，https://simonw0718.github.io/japanese-learning/ |
 
 ## v1.3（建議下一步）
 - 文法分類頁加「本類混合練習」；N2 再補 40 點至 TRY N2 全量

@@ -24,8 +24,8 @@ cd /Users/simon/Developer/japanese-learning && python3 tools/devserver.py 8765
 2. 檢查：`python3 tools/validate.py`
 3. 更新快取版本：`python3 tools/bump_sw.py`（自動重寫 `sw.js` 的外殼清單與 `VERSION`）
 
-## 部署（之後）
-GitHub Pages：推上 repo，Settings → Pages 選 main 根目錄。部署前排除 `doc/reference-index/`、`doc/referecne */`（教科書 PDF）與 `tools/raw/`。
+## 部署
+線上版：https://simonw0718.github.io/japanese-learning/（GitHub Pages，main 根目錄；`git push` 後約 1 分鐘生效，改檔先跑 `python3 tools/bump_sw.py`）。`.gitignore` 已排除 `doc/reference-index/`、`doc/referecne */`（教科書 PDF）與 `tools/raw/`。
 
 ## 授權
 - 單字：open-anki-jlpt-decks（MIT），原始資料 Jonathan Waller / tanos.co.uk（CC BY）；排序參考 JMdict（EDRDG，CC BY-SA 4.0）
