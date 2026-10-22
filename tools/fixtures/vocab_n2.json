@@ -1,0 +1,106 @@
+{
+ "src": {
+  "name": "fixture"
+ },
+ "items": [
+  {
+   "id": "v-fx-n2-0",
+   "v": 1,
+   "level": "N2",
+   "surface": "あいまい",
+   "reading": "あいまい",
+   "pos": "な形容詞",
+   "meaning_en": "vague, ambiguous",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n2-1",
+   "v": 1,
+   "level": "N2",
+   "surface": "扇ぐ",
+   "reading": "あおぐ",
+   "pos": "動詞",
+   "meaning_en": "to fan, to flap",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n2-2",
+   "v": 1,
+   "level": "N2",
+   "surface": "青白い",
+   "reading": "あおじろい",
+   "pos": "い形容詞",
+   "meaning_en": "pale",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n2-3",
+   "v": 1,
+   "level": "N2",
+   "surface": "呆れる",
+   "reading": "あきれる",
+   "pos": "動詞",
+   "meaning_en": "to be shocked, to be appalled",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n2-4",
+   "v": 1,
+   "level": "N2",
+   "surface": "アクセント",
+   "reading": "アクセント",
+   "pos": "名詞",
+   "meaning_en": "accent",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n2-5",
+   "v": 1,
+   "level": "N2",
+   "surface": "あくび",
+   "reading": "あくび",
+   "pos": "名詞",
+   "meaning_en": "yawn",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n2-6",
+   "v": 1,
+   "level": "N2",
+   "surface": "売行き",
+   "reading": "うれゆき",
+   "pos": "名詞",
+   "meaning_en": "sales",
+   "common": true,
+   "batch": 2
+  },
+  {
+   "id": "v-fx-n2-7",
+   "v": 1,
+   "level": "N2",
+   "surface": "売れ行き",
+   "reading": "うれゆき",
+   "pos": "名詞",
+   "meaning_en": "sales, demand",
+   "common": true,
+   "batch": 2
+  },
+  {
+   "id": "v-fx-n2-8",
+   "v": 1,
+   "level": "N2",
+   "surface": "うろうろ",
+   "reading": "うろうろ",
+   "pos": "副詞",
+   "meaning_en": "loitering, aimless wandering",
+   "common": true,
+   "batch": 2
+  }
+ ]
+}

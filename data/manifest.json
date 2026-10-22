@@ -1,0 +1,49 @@
+{
+  "_note": "內容檔清單：app、sw.js、tools/validate.py 都依此載入。新增檔案時加到對應 set。",
+  "sets": {
+    "vocab_n3": [
+      "vocab_n3.json"
+    ],
+    "vocab_n2": [
+      "vocab_n2.json"
+    ],
+    "vocab_extra": [
+      "vocab_extra_n3_1.json",
+      "vocab_extra_n3_2.json"
+    ],
+    "grammar": [
+      "grammar_n3.json",
+      "grammar_n2.json",
+      "grammar_n3_a.json",
+      "grammar_n3_b.json",
+      "grammar_n3_c.json",
+      "grammar_n2_d.json",
+      "grammar_n2_e.json"
+    ],
+    "quiz": [
+      "quiz_grammar.json",
+      "quiz_style.json",
+      "quiz_reading_listening.json",
+      "quiz_grammar_a.json",
+      "quiz_grammar_b.json",
+      "quiz_grammar_c.json",
+      "quiz_grammar_d.json",
+      "quiz_grammar_e.json",
+      "quiz_grammar_extra.json",
+      "quiz_reading_listening_02.json",
+      "quiz_jlpt_bunmyaku.json",
+      "quiz_jlpt_iikae.json",
+      "quiz_jlpt_yoho.json",
+      "quiz_jlpt_narabe.json",
+      "quiz_jlpt_sokuji.json"
+    ],
+    "dialogues": [
+      "dialogues_01.json",
+      "dialogues_02.json"
+    ],
+    "reading": [
+      "reading_01.json",
+      "reading_02.json"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+# 私人資料：教科書 PDF、OCR 對照、原始字典 CSV（不部署）
+doc/referecne */
+doc/reference-index/
+tools/raw/
+.DS_Store
+__pycache__/
+*.pyc
+.claude/

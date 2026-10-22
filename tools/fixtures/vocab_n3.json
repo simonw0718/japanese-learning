@@ -1,0 +1,106 @@
+{
+ "src": {
+  "name": "fixture"
+ },
+ "items": [
+  {
+   "id": "v-fx-n3-0",
+   "v": 1,
+   "level": "N3",
+   "surface": "作法",
+   "reading": "さほう",
+   "pos": "名詞",
+   "meaning_en": "manners, etiquette, propriety",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n3-1",
+   "v": 1,
+   "level": "N3",
+   "surface": "様々",
+   "reading": "さまざま",
+   "pos": "な形容詞",
+   "meaning_en": "varied, various",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n3-2",
+   "v": 1,
+   "level": "N3",
+   "surface": "冷ます",
+   "reading": "さます",
+   "pos": "動詞",
+   "meaning_en": "to cool, to let cool",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n3-3",
+   "v": 1,
+   "level": "N3",
+   "surface": "覚ます",
+   "reading": "さます",
+   "pos": "動詞",
+   "meaning_en": "to awaken",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n3-4",
+   "v": 1,
+   "level": "N3",
+   "surface": "冷める",
+   "reading": "さめる",
+   "pos": "動詞",
+   "meaning_en": "to become cool, to wear off",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n3-5",
+   "v": 1,
+   "level": "N3",
+   "surface": "覚める",
+   "reading": "さめる",
+   "pos": "動詞",
+   "meaning_en": "to wake, to wake up",
+   "common": true,
+   "batch": 1
+  },
+  {
+   "id": "v-fx-n3-6",
+   "v": 1,
+   "level": "N3",
+   "surface": "集団",
+   "reading": "しゅうだん",
+   "pos": "名詞",
+   "meaning_en": "group, mass",
+   "common": true,
+   "batch": 2
+  },
+  {
+   "id": "v-fx-n3-7",
+   "v": 1,
+   "level": "N3",
+   "surface": "集中",
+   "reading": "しゅうちゅう",
+   "pos": "名詞",
+   "meaning_en": "concentration, focusing the mind",
+   "common": true,
+   "batch": 2
+  },
+  {
+   "id": "v-fx-n3-8",
+   "v": 1,
+   "level": "N3",
+   "surface": "収入",
+   "reading": "しゅうにゅう",
+   "pos": "名詞",
+   "meaning_en": "income, revenue",
+   "common": true,
+   "batch": 2
+  }
+ ]
+}

@@ -1,0 +1,263 @@
+{
+ "src": {
+  "name": "fixture"
+ },
+ "items": [
+  {
+   "id": "q-g-n3-001-1",
+   "v": 1,
+   "level": "N3",
+   "skill": "grammar",
+   "type": "mcq",
+   "target": [
+    "g-n3-001"
+   ],
+   "stem": "問題1-1：正しいのは？（　　）",
+   "stem_ruby": "問題{もんだい}1-1：正{ただ}しいのは？（　　）",
+   "choices": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "answer": 1,
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "review": "ai_drafted"
+  },
+  {
+   "id": "q-g-n3-001-2",
+   "v": 1,
+   "level": "N3",
+   "skill": "grammar",
+   "type": "mcq",
+   "target": [
+    "g-n3-001"
+   ],
+   "stem": "問題1-2：正しいのは？（　　）",
+   "stem_ruby": "問題{もんだい}1-2：正{ただ}しいのは？（　　）",
+   "choices": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "answer": 2,
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "review": "ai_drafted"
+  },
+  {
+   "id": "q-g-n3-002-1",
+   "v": 1,
+   "level": "N3",
+   "skill": "grammar",
+   "type": "mcq",
+   "target": [
+    "g-n3-002"
+   ],
+   "stem": "問題2-1：正しいのは？（　　）",
+   "stem_ruby": "問題{もんだい}2-1：正{ただ}しいのは？（　　）",
+   "choices": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "answer": 1,
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "review": "ai_drafted"
+  },
+  {
+   "id": "q-g-n3-002-2",
+   "v": 1,
+   "level": "N3",
+   "skill": "grammar",
+   "type": "mcq",
+   "target": [
+    "g-n3-002"
+   ],
+   "stem": "問題2-2：正しいのは？（　　）",
+   "stem_ruby": "問題{もんだい}2-2：正{ただ}しいのは？（　　）",
+   "choices": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "answer": 2,
+   "explain_ja": "説明です。",
+   "explain_zh": "解說。",
+   "review": "ai_drafted"
+  },
+  {
+   "id": "q-keigo-1",
+   "v": 1,
+   "level": "N3",
+   "skill": "keigo",
+   "type": "mcq",
+   "target": [
+    "keigo"
+   ],
+   "stem": "（社長が）言う → 尊敬語は？ 1",
+   "choices": [
+    "おっしゃる",
+    "申す",
+    "申し上げる",
+    "言われてる"
+   ],
+   "answer": 0,
+   "explain_ja": "尊敬語は「おっしゃる」。",
+   "explain_zh": "尊敬語。",
+   "review": "ai_reviewed"
+  },
+  {
+   "id": "q-kaki-1",
+   "v": 1,
+   "level": "N2",
+   "skill": "kakikotoba",
+   "type": "mcq",
+   "target": [
+    "kakikotoba"
+   ],
+   "stem": "書き言葉に直す 1：でも",
+   "choices": [
+    "しかし",
+    "けど",
+    "だけど",
+    "でも"
+   ],
+   "answer": 0,
+   "explain_ja": "「しかし」。",
+   "explain_zh": "書面語。",
+   "review": "ai_reviewed"
+  },
+  {
+   "id": "q-keigo-2",
+   "v": 1,
+   "level": "N3",
+   "skill": "keigo",
+   "type": "mcq",
+   "target": [
+    "keigo"
+   ],
+   "stem": "（社長が）言う → 尊敬語は？ 2",
+   "choices": [
+    "おっしゃる",
+    "申す",
+    "申し上げる",
+    "言われてる"
+   ],
+   "answer": 0,
+   "explain_ja": "尊敬語は「おっしゃる」。",
+   "explain_zh": "尊敬語。",
+   "review": "ai_reviewed"
+  },
+  {
+   "id": "q-kaki-2",
+   "v": 1,
+   "level": "N2",
+   "skill": "kakikotoba",
+   "type": "mcq",
+   "target": [
+    "kakikotoba"
+   ],
+   "stem": "書き言葉に直す 2：でも",
+   "choices": [
+    "しかし",
+    "けど",
+    "だけど",
+    "でも"
+   ],
+   "answer": 0,
+   "explain_ja": "「しかし」。",
+   "explain_zh": "書面語。",
+   "review": "ai_reviewed"
+  },
+  {
+   "id": "q-keigo-3",
+   "v": 1,
+   "level": "N3",
+   "skill": "keigo",
+   "type": "mcq",
+   "target": [
+    "keigo"
+   ],
+   "stem": "（社長が）言う → 尊敬語は？ 3",
+   "choices": [
+    "おっしゃる",
+    "申す",
+    "申し上げる",
+    "言われてる"
+   ],
+   "answer": 0,
+   "explain_ja": "尊敬語は「おっしゃる」。",
+   "explain_zh": "尊敬語。",
+   "review": "ai_reviewed"
+  },
+  {
+   "id": "q-kaki-3",
+   "v": 1,
+   "level": "N2",
+   "skill": "kakikotoba",
+   "type": "mcq",
+   "target": [
+    "kakikotoba"
+   ],
+   "stem": "書き言葉に直す 3：でも",
+   "choices": [
+    "しかし",
+    "けど",
+    "だけど",
+    "でも"
+   ],
+   "answer": 0,
+   "explain_ja": "「しかし」。",
+   "explain_zh": "書面語。",
+   "review": "ai_reviewed"
+  },
+  {
+   "id": "q-d-fx-001-1",
+   "v": 1,
+   "level": "N3",
+   "skill": "listening",
+   "type": "mcq",
+   "target": [
+    "d-fx-001"
+   ],
+   "stem": "Aは何を頼みましたか。",
+   "choices": [
+    "時間変更",
+    "休暇",
+    "出張",
+    "退職"
+   ],
+   "answer": 0,
+   "explain_ja": "時間変更です。",
+   "explain_zh": "更改時間。",
+   "review": "ai_drafted"
+  },
+  {
+   "id": "q-r-fx-001-1",
+   "v": 1,
+   "level": "N3",
+   "skill": "reading",
+   "type": "mcq",
+   "target": [
+    "r-fx-001"
+   ],
+   "stem": "この文章の目的は？",
+   "choices": [
+    "お知らせ",
+    "広告",
+    "手紙",
+    "日記"
+   ],
+   "answer": 0,
+   "explain_ja": "お知らせ。",
+   "explain_zh": "通知。",
+   "review": "ai_drafted"
+  }
+ ]
+}
