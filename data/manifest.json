@@ -53,11 +53,17 @@
       "quiz_jlpt_gokeisei.json",
       "quiz_jlpt_doukei.json",
       "quiz_keigo_a.json",
-      "quiz_keigo_b.json"
+      "quiz_keigo_b.json",
+      "quiz_dialogues_03.json",
+      "quiz_dialogues_04.json",
+      "quiz_dialogues_05.json"
     ],
     "dialogues": [
       "dialogues_01.json",
-      "dialogues_02.json"
+      "dialogues_02.json",
+      "dialogues_03.json",
+      "dialogues_04.json",
+      "dialogues_05.json"
     ],
     "reading": [
       "reading_01.json",

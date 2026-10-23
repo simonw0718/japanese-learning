@@ -37,13 +37,21 @@ function bubble(d, t, { hidden = false } = {}) {
 const bubbles = (d, opts) => h('div', { class: 'chat' }, d.turns.map((t) => bubble(d, t, opts)));
 
 // ---- 一覧 ----
+const SCENE_ORDER = ['職場', '取引先', '学校', '子ども', '家庭', '友達', '近所', '病院', '区役所'];
+const openScenes = new Set();
 export async function list() {
   const ds = await D.dialogues();
-  const scenes = [...new Set(ds.map((d) => d.scene))];
+  const rank = (s) => (SCENE_ORDER.includes(s) ? SCENE_ORDER.indexOf(s) : 99);
+  const scenes = [...new Set(ds.map((d) => d.scene))].sort((a, b) => rank(a) - rank(b));
+  const row = (d) => h('li', null, h('a', { class: 'row-link', href: `#/dialogue/${d.id}` },
+    h('span', { class: 'row-main' }, h('b', { lang: 'ja' }, d.title), h('small', { lang: 'ja' }, d.situation_ja || '')), h('span', { class: 'row-side' }, chip(d.level))));
   return h('div', { class: 'page' }, pageHead('会話', '#/more'),
-    ds.length ? scenes.map((s) => h('section', null, h('h3', null, s), h('ul', { class: 'list' }, ds.filter((d) => d.scene === s).map((d) => h('li', null, h('a', { class: 'row-link', href: `#/dialogue/${d.id}` },
-      h('span', { class: 'row-main' }, h('b', { lang: 'ja' }, d.title), h('small', { lang: 'ja' }, d.situation_ja || '')), h('span', { class: 'row-side' }, chip(d.level))))))))
-      : empty('会話データがまだありません。'));
+    ds.length ? scenes.map((s) => {
+      const items = ds.filter((d) => d.scene === s);
+      const el = h('details', { class: 'gcat', open: openScenes.has(s), ontoggle: () => (el.open ? openScenes.add(s) : openScenes.delete(s)) },
+        h('summary', null, h('span', null, s), h('small', { class: 'muted' }, `${items.length}`)), h('ul', { class: 'list' }, items.map(row)));
+      return el;
+    }) : empty('会話データがまだありません。'));
 }
 
 async function find(id) { return (await D.dialogues()).find((x) => x.id === id); }
