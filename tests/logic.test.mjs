@@ -101,3 +101,17 @@ test('genKanjiYomi／genHyoki：正解在選項中、選項 4 個不重複', () 
   assert.equal(hq.choices[hq.answer], '学校'); assert.equal(new Set(hq.choices).size, 4);
   assert.equal(genKanjiYomi({ id: 'k', surface: 'かな', reading: 'かな' }, vocab), null);
 });
+
+test('pickPractice：未挑戦優先、group 1問、直前セットを避ける', async () => {
+  const { pickPractice } = await import('../js/logic.js');
+  const qs = Array.from({ length: 30 }, (_, i) => ({ id: 'q' + i, group: 'g' + (i % 6) }));
+  const a = pickPractice(qs, new Map(), [], 6);
+  assert.equal(a.length, 6);
+  assert.equal(new Set(a.map((q) => q.group)).size, 6);
+  const b = pickPractice(qs, new Map(), a.map((q) => q.id), 6);
+  assert.ok(b.every((q) => !a.includes(q)));
+  const seen = new Map(qs.slice(0, 28).map((q, i) => [q.id, i]));
+  const c = pickPractice(qs, seen, [], 3);
+  assert.deepEqual(c.slice(0, 2).map((q) => q.id).sort(), ['q28', 'q29']);
+  assert.equal(pickPractice(qs.slice(0, 4), new Map(), [], 10).length, 4); // 足りない時は全部
+});

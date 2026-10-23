@@ -51,7 +51,9 @@
       "quiz_jlpt_gaiyo.json",
       "quiz_jlpt_hatsuwa.json",
       "quiz_jlpt_gokeisei.json",
-      "quiz_jlpt_doukei.json"
+      "quiz_jlpt_doukei.json",
+      "quiz_keigo_a.json",
+      "quiz_keigo_b.json"
     ],
     "dialogues": [
       "dialogues_01.json",
@@ -62,6 +64,9 @@
       "reading_02.json",
       "reading_03.json",
       "reading_04.json"
+    ],
+    "keigo_table": [
+      "keigo_table.json"
     ]
   }
 }

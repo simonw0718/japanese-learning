@@ -38,6 +38,7 @@ export const grammar = () => (grammarCache ||= Promise.all([load('grammar'), loa
   return gs.map((g) => ({ ...g, quiz_ids: [...new Set([...(g.quiz_ids || []), ...(byTarget.get(g.id) || [])])] }));
 }));
 export const quizzes = () => load('quiz');
+export const keigoTable = () => load('keigo_table');
 export const dialogues = () => load('dialogues');
 export const reading = () => load('reading');
 export const mapById = (arr) => new Map(arr.map((x) => [x.id, x]));

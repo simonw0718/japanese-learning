@@ -253,3 +253,16 @@ details.fold .card { margin: 8px 0; }
 .script p { margin: 6px 0; line-height: 1.8; } .script .spk { display: inline-block; min-width: 2.4em; color: var(--muted); font-weight: 600; }
 .dl-box { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 8px 0; } .dl-status { min-height: 1.4em; }
 .tbl-hint { margin: 4px 0 -2px; }
+/* 敬語まとめ表 */
+.k-scroll { overflow-x: auto; margin: 6px 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.k-table { border-collapse: collapse; width: 100%; min-width: 330px; font-size: .86rem; table-layout: fixed; }
+.k-table tr > :first-child { width: 24%; } .k-table tr > * { overflow-wrap: anywhere; }
+.k-table th, .k-table td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; line-height: 1.9; }
+.k-table tbody tr:last-child > * { border-bottom: 0; }
+.k-table tbody th { font-weight: 600; background: var(--soft); }
+.k-table thead th { font-size: .85rem; }
+.k-table thead th small { display: block; font-weight: 400; font-size: .72rem; }
+.k-table td + td, .k-table th + td { border-left: 1px solid var(--line); }
+.k-son { color: var(--ok); } .k-ken { color: var(--accent); }
+.k-phrase { padding: 8px 14px; display: flex; flex-direction: column; gap: 2px; }
+.k-phrase-ja { display: flex; align-items: flex-start; gap: 6px; justify-content: space-between; }

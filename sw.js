@@ -1,6 +1,6 @@
 // Service worker：VERSION 與 SHELL_FILES 由 tools/bump_sw.py 產生（改檔後執行一次）
 // VERSION 格式 <hash>-a<n>：n 為音檔快取版本，只有手動改 n 才會清掉已下載的音檔
-const VERSION = '68ac5637-a1';
+const VERSION = '5d10b9ef-a1';
 const SHELL = `jp-shell-${VERSION}`;
 const DATA = `jp-data-${VERSION}`;
 const AUDIO = `jp-audio-${VERSION.split('-a').pop()}`;
@@ -8,8 +8,8 @@ const DEV = ['localhost', '127.0.0.1'].includes(self.location.hostname);
 const SHELL_FILES = ['./', 'index.html', 'app.css', 'manifest.webmanifest', 'vendor/ts-fsrs.umd.js', 'icons/icon-192.png', 'icons/icon-512.png',
   'icons/icon-maskable-512.png', 'icons/icon.svg', 'js/backup.js', 'js/data.js', 'js/day.js', 'js/db.js', 'js/logic.js', 'js/main.js', 'js/offline.js',
   'js/plan.js', 'js/router.js', 'js/ruby.js', 'js/session.js', 'js/speech.js', 'js/srs.js', 'js/store.js', 'js/tts.js', 'js/ui.js',
-  'js/views/dialogue.js', 'js/views/grammar.js', 'js/views/home.js', 'js/views/jlpt.js', 'js/views/more.js', 'js/views/reading.js',
-  'js/views/review.js', 'js/views/settings.js', 'js/views/vocab.js'];
+  'js/views/dialogue.js', 'js/views/grammar.js', 'js/views/home.js', 'js/views/jlpt.js', 'js/views/keigo.js', 'js/views/more.js',
+  'js/views/reading.js', 'js/views/review.js', 'js/views/settings.js', 'js/views/vocab.js'];
 // 資料檔清單來自 data/manifest.json（新增內容檔不必改 sw.js）
 const dataFiles = () => fetch(req('data/manifest.json')).then((r) => r.json()).then((m) => ['data/manifest.json', ...[...new Set(Object.values(m.sets || {}).flat())].map((f) => `data/${f}`)]);
 

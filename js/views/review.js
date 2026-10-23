@@ -3,7 +3,8 @@ import { createSession } from '../session.js';
 import { buildPlan } from '../plan.js';
 import * as db from '../db.js';
 import * as D from '../data.js';
-import { shuffle, markDay, dayKey } from '../srs.js';
+import { markDay, dayKey } from '../srs.js';
+import { pickPractice } from '../logic.js';
 import { micBtn, ttsBtn, jaEl } from '../ui.js';
 
 const hint = (t) => h('div', { class: 'page' }, pageHead(t, '#/home'));
@@ -64,11 +65,15 @@ export async function practice({ params }) {
   const qs = (await D.quizzes()).filter((q) => q.skill === skill && !['bunsho', 'joho'].includes(q.jlpt)); // 本文が必要な題は除く
   if (!qs.length) { wrap.append(empty('問題データがまだありません。')); return wrap; }
   const cards = await db.allCards();
-  const seen = new Set(cards.map((c) => c.item_id));
-  const fresh = shuffle(qs.filter((q) => !seen.has(q.id)));
-  const old = shuffle(qs.filter((q) => seen.has(q.id)));
-  const pick = [...fresh, ...old].slice(0, 10).map((q) => ({ kind: 'quiz', id: q.id, data: q }));
+  const seen = new Map(cards.filter((c) => c.card && c.card.due).map((c) => [c.item_id, +c.card.due]));
+  const lk = 'practice-last:' + skill;
+  let last = [];
+  try { last = JSON.parse(sessionStorage.getItem(lk) || '[]'); } catch (e) {}
+  const picked = pickPractice(qs, seen, last, 10);
+  try { sessionStorage.setItem(lk, JSON.stringify(picked.map((q) => q.id))); } catch (e) {}
+  const pick = picked.map((q) => ({ kind: 'quiz', id: q.id, data: q }));
   wrap.append(h('p', { class: 'muted' }, `全${qs.length}問中 ${qs.filter((q) => seen.has(q.id)).length}問に挑戦済み。答えた問題は復習に入ります。`),
+    skill === 'keigo' ? h('p', null, h('a', { class: 'btn', href: '#/keigo/table' }, '📋 敬語のまとめ表')) : null,
     createSession({ cards: pick, srs: skill !== 'grammar', title: name, finishButtons: [{ label: 'もう1セット', primary: true, onclick: () => location.reload() }, { label: 'その他へ', href: '#/more' }] }));
   return wrap;
 }

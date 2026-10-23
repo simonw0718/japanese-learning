@@ -136,3 +136,18 @@ export function genHyoki(v, vocab, rnd = Math.random) {
   const stem = ex ? ex.ja.replace(v.surface, v.reading) : v.reading;
   return mcq(`gen-hyoki-${v.id}`, v, 'hyoki', stem, v.reading, v.surface, wrong, rnd, `「${v.reading}」は「${v.surface}」と書く。`);
 }
+// 敬語等の練習セット：未挑戦 → 期日が近い順。直前のセットの題と同じ group（同じ動詞・場面）は1セット1問まで
+// seen: Map(id → due 時刻 ms)；last: 直前のセットの id；足りない時だけ制限をゆるめる
+export function pickPractice(qs, seen = new Map(), last = [], n = 10, rnd = Math.random) {
+  const mix = (a) => a.map((q) => [rnd(), q]).sort((x, y) => x[0] - y[0]).map((x) => x[1]);
+  const fresh = mix(qs.filter((q) => !seen.has(q.id)));
+  const old = mix(qs.filter((q) => seen.has(q.id))).sort((a, b) => seen.get(a.id) - seen.get(b.id));
+  const lastSet = new Set(last);
+  const order = [...fresh, ...old];
+  const out = [], ids = new Set(), groups = new Set();
+  const take = (ok) => { for (const q of order) { if (out.length >= n) return; if (!ids.has(q.id) && ok(q)) { out.push(q); ids.add(q.id); groups.add(q.group || q.id); } } };
+  take((q) => !lastSet.has(q.id) && !groups.has(q.group || q.id));
+  take((q) => !lastSet.has(q.id));
+  take(() => true);
+  return out;
+}
