@@ -107,6 +107,6 @@ export async function settingsView() {
     sec('クレジット / 授權', h('ul', { class: 'plain small' },
       h('li', null, '単語：open-anki-jlpt-decks (MIT)'), h('li', null, '単語リスト：Tanos JLPT (CC BY)'), h('li', null, '辞書：JMdict © EDRDG (CC BY-SA 4.0)'), h('li', null, 'SRS：ts-fsrs (MIT)'),
       h('li', null, '単語の頻度：wordfreq (CC BY-SA 4.0)'),
-      h('li', null, '音声：VOICEVOX:冥鳴ひまり／VOICEVOX:玄野武宏（VOICEVOX で合成）'),
+      h('li', null, '音声：VOICEVOX:冥鳴ひまり／VOICEVOX:玄野武宏／VOICEVOX:四国めたん／VOICEVOX:雀松朱司（VOICEVOX で合成）'),
       h('li', null, '文法・会話・読解：オリジナル（AI作成）'))));
 }

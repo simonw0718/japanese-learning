@@ -20,7 +20,9 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA, OUT = ROOT / "data", ROOT / "audio"
 ENGINE = "http://127.0.0.1:50021"
 MAIN, OTHER = 14, 11  # VOICEVOX style id：冥鳴ひまり／玄野武宏
-CREDIT = "VOICEVOX:冥鳴ひまり／VOICEVOX:玄野武宏"
+F2, M2 = 2, 52  # 三人以上の聴解：四国めたん／雀松朱司
+VOICE = {"F": MAIN, "M": OTHER, "F2": F2, "M2": M2}
+CREDIT = "VOICEVOX:冥鳴ひまり／VOICEVOX:玄野武宏／VOICEVOX:四国めたん／VOICEVOX:雀松朱司"
 
 
 def key(text):
@@ -75,9 +77,9 @@ def collect(n_vocab):
                 add(c)
         if q.get("jlpt") == "narabe" and q.get("full_ja"):
             add(q["full_ja"].replace("　", ""))
-        if q.get("jlpt") == "gaiyo":  # 概要理解：script（F＝冥鳴ひまり、M＝玄野武宏）＋聽完後的問題
+        if q.get("jlpt") in ("gaiyo", "kadai", "togo_l"):  # 聴解 script（spk→VOICE）＋問題
             for line in q.get("script", []):
-                add(line.get("ja"), sp=OTHER if line.get("spk") == "M" else MAIN)
+                add(line.get("ja"), sp=VOICE.get(line.get("spk"), MAIN))
             add(q.get("stem"))
         if q.get("jlpt") == "hatsuwa":  # 発話表現：情境（男聲旁白）＋3 個說法（女聲）
             add(q.get("situation_ja"), sp=OTHER)

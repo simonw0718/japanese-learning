@@ -266,3 +266,6 @@ details.fold .card { margin: 8px 0; }
 .k-son { color: var(--ok); } .k-ken { color: var(--accent); }
 .k-phrase { padding: 8px 14px; display: flex; flex-direction: column; gap: 2px; }
 .k-phrase-ja { display: flex; align-items: flex-start; gap: 6px; justify-content: space-between; }
+/* 統合理解（読解）：A／B の見出し */
+.passage .part-h { margin: 12px 0 2px; font-weight: 700; color: var(--accent); }
+.passage .part-h:first-child { margin-top: 0; }

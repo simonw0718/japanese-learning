@@ -197,7 +197,7 @@ const lineHtml = (p, cur) => blankHtml(settings().furigana && p.ruby ? rubyHtml(
 function contextEl(c) {
   if (c.passage || c.table) {
     const cur = c.data && c.data.blank;
-    const box = h('div', { class: 'passage' + (c.bunsho ? ' scroll' : '') }, tableEl(c.table), (c.passage || []).map((p) => h('p', { lang: 'ja', class: 'ja', html: lineHtml(p, cur) })));
+    const box = h('div', { class: 'passage' + (c.bunsho ? ' scroll' : '') }, tableEl(c.table), (c.passage || []).map((p, i, a) => [p.part && p.part !== (a[i - 1] || {}).part ? h('p', { class: 'part-h' }, p.part) : null, h('p', { lang: 'ja', class: 'ja', html: lineHtml(p, cur) })]));
     // 同じ文章が続くので、今の空欄が見える位置まで本文だけをスクロール
     if (c.bunsho && cur) requestAnimationFrame(() => { const b = box.querySelector('.blank.on'); if (b) box.scrollTop = Math.max(0, b.offsetTop - box.clientHeight / 3); });
     return h('details', { class: 'fold passage-box', open: true }, h('summary', null, h('span', null, '本文'), h('small', { class: 'muted' }, c.passageTitle || '')), box);
@@ -219,7 +219,7 @@ function contextEl(c) {
 function quizCard(c, ctx) {
   const q = c.data;
   if (q.jlpt === 'sokuji' || q.jlpt === 'hatsuwa') return sokujiCard(c, ctx);
-  const gaiyo = q.jlpt === 'gaiyo';
+  const gaiyo = SCRIPT_TYPES.has(q.jlpt);
   // JLPT 新題型：解說會提到選項順序（①〜④、語序 1→4），答案位置已平均 → 不打亂
   const base = q.choices.map((t, idx) => ({ t, idx }));
   const order = q.jlpt && !q.gen ? base : shuffle(base);
@@ -263,7 +263,10 @@ function quizCard(c, ctx) {
   } };
 }
 export const JLPT_NAME = { kanji_yomi: '漢字読み', hyoki: '表記', bunmyaku: '文脈規定', iikae: '言い換え', yoho: '用法', keishiki: '文法形式', narabe: '並べ替え', naiyo: '内容理解', point: 'ポイント理解', sokuji: '即時応答',
-  gokeisei: '語形成', bunsho: '文章の文法', joho: '情報検索', gaiyo: '概要理解', hatsuwa: '発話表現', doukei: '同形異義語' };
+  gokeisei: '語形成', bunsho: '文章の文法', joho: '情報検索', gaiyo: '概要理解', hatsuwa: '発話表現', doukei: '同形異義語',
+  togo_r: '統合理解（読解）', kadai: '課題理解', togo_l: '統合理解（聴解）' };
+// スクリプト（F／M…の音声）を聞いて答える聴解題型
+const SCRIPT_TYPES = new Set(['gaiyo', 'kadai', 'togo_l']);
 const PROMPT = {
   kanji_yomi: '＿＿の言葉の読み方として最もよいものを選んでください。',
   hyoki: '＿＿の言葉を漢字で書くとき、最もよいものを選んでください。',
@@ -275,28 +278,34 @@ const PROMPT = {
   bunsho: '文章全体の内容を考えて、空欄に入る最もよいものを選んでください。',
   joho: '表と案内を読んで、答えとして最もよいものを選んでください。',
   gaiyo: '話を聞いて、質問に答えてください。/ 聽完回答問題',
+  kadai: 'まず質問を聞いてください。それから話を聞いて、最もよいものを選んでください。/ 先聽問題再聽對話',
+  togo_l: '長めの話を聞いて、最もよいものを選んでください。/ 聽完較長的內容後作答',
+  togo_r: 'AとBの文章を読んで、最もよいものを選んでください。/ 讀完 A、B 兩篇文章後作答',
   doukei: '＿＿の言葉の、この文での意味として最もよいものを選んでください。/ 選出底線詞語在句中的意思（中文）',
 };
 // 概要理解：script（F／M の音声）＋質問を続けて再生。文字は作答後
 function gaiyoAudio(q, onHeard) {
   let playing = false;
-  const texts = [...(q.script || []).map((l) => l.ja), q.stem].filter(Boolean);
+  const lines = (q.script || []).map((l) => l.ja);
+  const texts = (q.jlpt === 'kadai' ? [q.stem, ...lines, q.stem] : [...lines, q.stem]).filter(Boolean);
+  const again = q.jlpt === 'togo_l' && q.part > 1; // 質問2：質問1と同じ音声（自動再生しない）
   const b = h('button', { class: 'btn big', type: 'button', onclick: async () => {
     if (playing) { tts.stop(); return; }
     playing = true; b.textContent = '■ 停止';
-    const ok = await tts.playSequence(texts, { gap: 500, title: '概要理解' });
+    const ok = await tts.playSequence(texts, { gap: 500, title: JLPT_NAME[q.jlpt] });
     playing = false; b.textContent = '▶ もう一度聞く';
     if (ok) onHeard();
   } }, '▶ 聞く');
   const showQ = h('button', { class: 'btn', type: 'button', onclick: () => { onHeard(); showQ.remove(); } }, '質問を文字で見る / 顯示問題');
-  setTimeout(() => b.click(), 300);
-  return h('div', { class: 'audio-box' }, h('p', { class: 'muted small' }, '話を聞いてから答えてください（スクリプトは答えた後に見られます）/ 先聽再作答，作答後可看逐字稿'), h('div', { class: 'ctl-row' }, b, showQ));
+  if (again) { onHeard(); showQ.remove(); b.textContent = '▶ もう一度聞く'; } else setTimeout(() => b.click(), 300);
+  return h('div', { class: 'audio-box' }, h('p', { class: 'muted small' }, again ? '質問1と同じ話です。もう一度聞くこともできます / 與質問1同一段音檔' : '話を聞いてから答えてください（スクリプトは答えた後に見られます）/ 先聽再作答，作答後可看逐字稿'), h('div', { class: 'ctl-row' }, b, showQ));
 }
-// 概要理解の逐字稿（作答後）
+// 聴解の逐字稿（作答後）
+const SPK = { F: '女', M: '男', F2: '女2', M2: '男2' };
 function scriptEl(q) {
   const ruby = (l) => (settings().furigana && l.ruby ? rubyHtml(l.ruby) : esc(l.ja));
   return h('details', { class: 'fold' }, h('summary', null, h('span', null, 'スクリプト / 逐字稿')),
-    h('div', { class: 'script' }, (q.script || []).map((l) => h('p', { lang: 'ja' }, h('small', { class: 'spk' }, l.spk === 'M' ? '男' : '女'), h('span', { html: ruby(l) }), ' ', ttsBtn(l.ja))),
+    h('div', { class: 'script' }, (q.script || []).map((l) => h('p', { lang: 'ja' }, h('small', { class: 'spk' }, SPK[l.spk] || '女'), h('span', { html: ruby(l) }), ' ', ttsBtn(l.ja))),
       h('p', { lang: 'ja' }, h('small', { class: 'spk' }, '質問'), h('span', { html: settings().furigana && q.stem_ruby ? rubyHtml(q.stem_ruby) : esc(q.stem) }))));
 }
 

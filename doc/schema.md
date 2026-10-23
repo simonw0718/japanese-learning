@@ -128,3 +128,10 @@
 
 - 長文讀解題沿用 `skill:"reading"`（jlpt 省略＝naiyo），`target:[r-long-…]`。
 - ID 一律 `q-j-<jlpt>-<n3|n2>-NNN`；長文題 `q-r-long-n2-NNN-k`。
+
+## v1.5 新增（N2 讀解／聽解）
+- 讀解 `kind:"togo"`（id `r-togo-n2-NNN`）：body 每句加 `part:"A"|"B"`，A 在前。題目 `jlpt:"togo_r"`、skill reading、target＝該篇。
+- 聽解 `jlpt:"kadai"`（課題理解）：同 gaiyo（script＋stem），播放順序＝問題→對話→問題；選項作答前即顯示。
+- 聽解 `jlpt:"togo_l"`（統合理解）：script＋stem，另需 `set`（同一段音檔共用）與 `part`（1／2）；質問2 的 `script` 可為 `[]`（沿用質問1）。
+- script `spk`：F＝冥鳴ひまり、M＝玄野武宏、F2＝四国めたん、M2＝雀松朱司（gaiyo 只用 F／M）。
+- 短文／中文讀解：一般 reading（無 kind），id `r-n2-1NN`。

@@ -11,12 +11,14 @@ import { esc, rubyHtml } from '../ruby.js';
 // 題型 → 科目（得点区分：言語知識／読解／聴解）。順序＝試験の順。doukei は練習専用（模試・得点に入れない）
 const TYPES = [
   ['kanji_yomi', 'moji'], ['hyoki', 'moji'], ['gokeisei', 'moji'], ['bunmyaku', 'moji'], ['iikae', 'moji'], ['yoho', 'moji'], ['doukei', 'moji'],
-  ['keishiki', 'bunpo'], ['narabe', 'bunpo'], ['bunsho', 'bunpo'], ['naiyo', 'dokkai'], ['joho', 'dokkai'],
-  ['point', 'chokai'], ['gaiyo', 'chokai'], ['hatsuwa', 'chokai'], ['sokuji', 'chokai'],
+  ['keishiki', 'bunpo'], ['narabe', 'bunpo'], ['bunsho', 'bunpo'], ['naiyo', 'dokkai'], ['togo_r', 'dokkai'], ['joho', 'dokkai'],
+  ['kadai', 'chokai'], ['point', 'chokai'], ['gaiyo', 'chokai'], ['hatsuwa', 'chokai'], ['sokuji', 'chokai'], ['togo_l', 'chokai'],
 ];
 const PRACTICE_ONLY = new Set(['doukei']);
 // 本文単位でまとめて出す題型（同じ文章の問題を続けて出す）
-const PASSAGE = new Set(['naiyo', 'joho', 'bunsho']);
+const PASSAGE = new Set(['naiyo', 'joho', 'bunsho', 'togo_r']);
+// 1つの音声に複数の質問（統合理解・聴解）：set ごとにまとめ、質問2以降は質問1のスクリプトを使う
+const GROUPED = new Set([...PASSAGE, 'point', 'togo_l']);
 const GROUP = { moji: '文字・語彙', bunpo: '文法', dokkai: '読解', chokai: '聴解' };
 const SCORE = { moji: 'gengo', bunpo: 'gengo', dokkai: 'dokkai', chokai: 'chokai' };
 const SCORE_NAME = { gengo: '言語知識（文字・語彙・文法）', dokkai: '読解', chokai: '聴解' };
@@ -45,10 +47,17 @@ async function bank(lv) {
     out.forEach((g) => g.qs.sort((a, x) => (a.blank || 0) - (x.blank || 0)));
     return out;
   };
-  return { vocab, vLv, by, reading: groups('naiyo', rMap), joho: groups('joho', rMap), bunsho: groups('bunsho', rMap), listening: groups('point', dMap) };
+  const sets = new Map();
+  for (const q of by.togo_l || []) { const k = q.set || q.id; if (!sets.has(k)) sets.set(k, []); sets.get(k).push(q); }
+  const togoL = [...sets.values()].map((qs) => {
+    qs.sort((a, x) => (a.part || 1) - (x.part || 1));
+    const script = (qs.find((q) => (q.script || []).length) || {}).script || [];
+    return { qs: qs.map((q) => ((q.script || []).length ? q : { ...q, script })) };
+  });
+  return { vocab, vLv, by, reading: groups('naiyo', rMap), joho: groups('joho', rMap), bunsho: groups('bunsho', rMap), togo_r: groups('togo_r', rMap), togo_l: togoL, listening: groups('point', dMap) };
 }
 const gen = (t) => t === 'kanji_yomi' || t === 'hyoki';
-const count = (b, t) => (gen(t) ? b.vLv.length : PASSAGE.has(t) || t === 'point' ? groupsOf(b, t).reduce((a, g) => a + g.qs.length, 0) : (b.by[t] || []).length);
+const count = (b, t) => (gen(t) ? b.vLv.length : GROUPED.has(t) ? groupsOf(b, t).reduce((a, g) => a + g.qs.length, 0) : (b.by[t] || []).length);
 const groupsOf = (b, t) => (t === 'naiyo' ? b.reading : t === 'point' ? b.listening : b[t] || []);
 
 // 最近出た題を後回し（meta jlpt_seen）
@@ -68,10 +77,10 @@ function makeCards(b, t, n, seen) {
     for (const v of pool) { if (out.length >= n) break; const q = gen(v, b.vocab); if (q) out.push(card(q)); }
     return out;
   }
-  if (PASSAGE.has(t) || t === 'point') {
+  if (GROUPED.has(t)) {
     const gs = fresh(groupsOf(b, t), seen, (g) => g.qs[0].id);
     const out = [];
-    for (const g of gs) { if (out.length >= n) break; out.push(...(t === 'point' ? audioCards(g) : passageCards(g))); }
+    for (const g of gs) { if (out.length >= n) break; out.push(...(t === 'point' ? audioCards(g) : t === 'togo_l' ? g.qs.map((q) => card(q)) : passageCards(g))); }
     return out;
   }
   return fresh(b.by[t] || [], seen).slice(0, n).map((q) => card(q));
@@ -103,7 +112,7 @@ export async function top() {
   const last = (hist || []).filter((x) => x.lv === lv).slice(-5).reverse();
   return h('div', { class: 'page' }, pageHead('JLPT 対策', '#/more'),
     h('div', { class: 'set-row col' }, h('span', { class: 'muted' }, 'レベル / 等級'), segGroup([['N3', 'N3'], ['N2', 'N2']], lvNow, (v) => { setSetting('jlptLevel', v); location.reload(); }, 'JLPT レベル')),
-    h('a', { class: 'btn primary big cont', href: `#/jlpt/${lv}/mini` }, h('b', null, 'ミニ模試'), h('small', null, `約20問・25分・科目別の点数 / ${lv} 迷你模擬考`)),
+    h('a', { class: 'btn primary big cont', href: `#/jlpt/${lv}/mini` }, h('b', null, 'ミニ模試'), h('small', null, `約30問・40分・科目別の点数 / ${lv} 迷你模擬考`)),
     h('p', { class: 'muted small' }, '題型練習：10問ずつ、すぐに答えと解説が出ます / 每次 10 題，立即看解說'),
     // データのない題型は表示しない
     Object.entries(GROUP).map(([g, name]) => { const ts = TYPES.filter(([t, x]) => x === g && count(b, t) > 0); return ts.length ? h('section', null, h('h3', null, name), h('ul', { class: 'list' }, ts.map(([t]) => row(t)))) : null; }),
@@ -132,7 +141,7 @@ export async function drill({ params }) {
 // ---- ミニ模試 ----
 // 読解・聴解・文章の文法は「本文1つ分」。データのない題型は自動で抜ける。doukei は入れない
 const MINI = [['kanji_yomi', 2], ['hyoki', 2], ['gokeisei', 1], ['bunmyaku', 2], ['iikae', 1], ['yoho', 1], ['keishiki', 3], ['narabe', 2], ['bunsho', 1],
-  ['naiyo', 1], ['joho', 1], ['point', 1], ['gaiyo', 1], ['hatsuwa', 1], ['sokuji', 2]];
+  ['naiyo', 1], ['togo_r', 1], ['joho', 1], ['kadai', 1], ['point', 1], ['gaiyo', 1], ['hatsuwa', 1], ['sokuji', 2], ['togo_l', 1]];
 export async function mini({ params }) {
   const lv = params.lv.toUpperCase();
   const wrap = h('div', { class: 'page' }, pageHead(`ミニ模試（${lv}）`, '#/jlpt'));
@@ -144,13 +153,13 @@ export async function mini({ params }) {
   if (cards.length < 5) { wrap.append(empty('問題が足りません。')); return wrap; }
   const start = h('div', { class: 'card center ear' },
     h('h2', null, `ミニ模試 ${cards.length}問`),
-    h('p', { class: 'muted' }, '制限時間 25分。答え合わせは最後にまとめて。聴解は音が出ます。/ 限時 25 分，最後才對答案'),
+    h('p', { class: 'muted' }, '制限時間 40分。答え合わせは最後にまとめて。聴解は音が出ます。/ 限時 40 分，最後才對答案'),
     h('button', { class: 'btn primary big', type: 'button', onclick: () => run() }, 'はじめる'));
   wrap.append(start);
   function run() {
     const res = new Map();
     markSeen(cards);
-    start.replaceWith(createSession({ cards, srs: false, exam: true, timeLimit: 25 * 60, title: 'ミニ模試',
+    start.replaceWith(createSession({ cards, srs: false, exam: true, timeLimit: 40 * 60, title: 'ミニ模試',
       onAnswer: (c, name) => res.set(c.id, name !== 'again'),
       onFinish: (st, root) => { root.replaceChildren(result(lv, cards, res)); markDay(); } }));
   }
@@ -200,7 +209,7 @@ function review(c) {
 }
 
 // ---- 今日の JLPT 3問（ホームの1ステップ）：本文なしで解ける題型からランダムに3問（doukei を含む）----
-const DAILY_TYPES = ['kanji_yomi', 'hyoki', 'gokeisei', 'bunmyaku', 'iikae', 'yoho', 'doukei', 'keishiki', 'narabe', 'gaiyo', 'hatsuwa', 'sokuji'];
+const DAILY_TYPES = ['kanji_yomi', 'hyoki', 'gokeisei', 'bunmyaku', 'iikae', 'yoho', 'doukei', 'keishiki', 'narabe', 'gaiyo', 'kadai', 'hatsuwa', 'sokuji'];
 export const dailyDone = async () => (await db.getMeta('jlpt3_done')) === dayKey();
 export async function dailyCards(lv = lvNow(), n = 3) {
   const b = await bank(lv);

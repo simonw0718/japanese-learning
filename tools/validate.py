@@ -79,10 +79,12 @@ def check_vocab(vocab):
 
 
 # ---- v1.4 新題型（doc/schema.md「v1.4 新增」）----
-V14_QID = re.compile(r"^q-j-(gokeisei|bunsho|joho|gaiyo|hatsuwa|doukei)-(n3|n2)-\d{3}$")
+V14_QID = re.compile(r"^q-j-(gokeisei|bunsho|joho|gaiyo|hatsuwa|doukei|togo_r|kadai|togo_l)-(n3|n2)-\d{3}$")
 FW_BLANK = re.compile(r"［([１-５])］")
-READ_KIND = {"long": r"^r-long-n2-\d{3}$", "joho": r"^r-joho-(n3|n2)-\d{3}$", "bunsho": r"^r-bunsho-(n3|n2)-\d{3}$"}
-V14_SKILL = {"gokeisei": "vocab", "bunsho": "grammar", "joho": "reading", "gaiyo": "listening", "hatsuwa": "listening", "doukei": "vocab"}
+READ_KIND = {"long": r"^r-long-n2-\d{3}$", "togo": r"^r-togo-(n3|n2)-\d{3}$", "joho": r"^r-joho-(n3|n2)-\d{3}$", "bunsho": r"^r-bunsho-(n3|n2)-\d{3}$"}
+V14_SKILL = {"gokeisei": "vocab", "bunsho": "grammar", "joho": "reading", "gaiyo": "listening", "hatsuwa": "listening", "doukei": "vocab",
+             "togo_r": "reading", "kadai": "listening", "togo_l": "listening"}  # v1.5 追加
+SPK = {"F", "M", "F2", "M2"}
 READINGS = {}
 
 
@@ -114,6 +116,10 @@ def check_v14_reading(r):
             cells = [t.get("caption") or ""] + t["cols"] + [c for row in t["rows"] if isinstance(row, list) for c in row]
             if any(isinstance(c, str) and RUBY.search(c) for c in cells):
                 err(r["id"], "table 不加 ruby")
+    if kind == "togo":
+        parts = [s.get("part") for s in r.get("body", [])]
+        if any(p not in ("A", "B") for p in parts) or parts != sorted(parts) or set(parts) != {"A", "B"}:
+            err(r["id"], "togo 的 body 需全部標 part A／B，且 A 在前")
     if kind == "bunsho":
         text = "".join(s.get("ja", "") for s in r.get("body", []))
         nums = [int(m.translate({0xFF10 + i: str(i) for i in range(10)})) for m in FW_BLANK.findall(text)]
@@ -136,10 +142,11 @@ def check_v14_quiz(q, ids):
     if j == "gokeisei":
         if "（　　）" not in q.get("stem", ""):
             err(qid, "gokeisei stem 需含（　　）")
-    elif j in ("bunsho", "joho"):
+    elif j in ("bunsho", "joho", "togo_r"):
+        kind = "togo" if j == "togo_r" else j
         r = READINGS.get(tg[0]) if len(tg) == 1 else None
-        if not r or r.get("kind") != j:
-            return err(qid, f"{j} 的 target 需為 1 篇 kind={j} 的讀解（r-{j}-…）")
+        if not r or r.get("kind") != kind:
+            return err(qid, f"{j} 的 target 需為 1 篇 kind={kind} 的讀解（r-{kind}-…）")
         if j == "bunsho":
             b = q.get("blank")
             if not isinstance(b, int) or not 1 <= b <= 5:
@@ -149,13 +156,15 @@ def check_v14_quiz(q, ids):
                 err(qid, f"本文沒有 {mark}")
             if q.get("stem") != mark:
                 err(qid, f"bunsho stem 需為 {mark}")
-    elif j == "gaiyo":
+    elif j in ("gaiyo", "kadai", "togo_l"):
         sc = q.get("script")
-        if not isinstance(sc, list) or not sc:
-            err(qid, "gaiyo 需有 script[]")
+        if j == "togo_l" and (not q.get("set") or q.get("part") not in (1, 2)):
+            err(qid, "togo_l 需有 set 與 part（1／2）")
+        if not isinstance(sc, list) or (not sc and not (j == "togo_l" and q.get("part") == 2)):
+            err(qid, f"{j} 需有 script[]（togo_l 質問2 可為空，沿用質問1）")
         for line in sc or []:
-            if line.get("spk") not in ("F", "M"):
-                err(qid, f"script spk 需為 F/M：{line.get('spk')}")
+            if line.get("spk") not in (SPK if j != "gaiyo" else ("F", "M")):
+                err(qid, f"script spk 不正確：{line.get('spk')}")
             if not line.get("ja"):
                 err(qid, "script 缺 ja")
             check_ruby(qid, line.get("ja", ""), line.get("ruby"))
@@ -253,7 +262,8 @@ def main():
             check_ruby(g["id"], e["ja"], e.get("ruby"))
 
     JLPT = {"bunmyaku", "iikae", "yoho", "keishiki", "narabe", "sokuji", "naiyo", "point",
-            "gokeisei", "bunsho", "joho", "gaiyo", "hatsuwa", "doukei"}  # v1.4 追加 6 種
+            "gokeisei", "bunsho", "joho", "gaiyo", "hatsuwa", "doukei",  # v1.4 追加 6 種
+            "togo_r", "kadai", "togo_l"}  # v1.5 追加
     for q in quiz:
         j = q.get("jlpt")
         n = 3 if j in ("sokuji", "hatsuwa") else 4

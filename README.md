@@ -34,5 +34,5 @@ cd /Users/simon/Developer/japanese-learning && python3 tools/devserver.py 8765
 ## 授權
 - 單字：open-anki-jlpt-decks（MIT），原始資料 Jonathan Waller / tanos.co.uk（CC BY）；排序參考 JMdict（EDRDG，CC BY-SA 4.0）
 - ts-fsrs（MIT）
-- 音聲：VOICEVOX:冥鳴ひまり／VOICEVOX:玄野武宏（`tools/build_audio.py`，引擎在 `~/Developer/voicevox_engine`；條款整理 [doc/voice-terms.md](doc/voice-terms.md)）。不使用 macOS 系統語音（僅限個人使用）
+- 音聲：VOICEVOX:冥鳴ひまり／VOICEVOX:玄野武宏／VOICEVOX:四国めたん／VOICEVOX:雀松朱司（後兩位只用於三人以上的聽解；`tools/build_audio.py`，引擎在 `~/Developer/voicevox_engine`；條款整理 [doc/voice-terms.md](doc/voice-terms.md)）。不使用 macOS 系統語音（僅限個人使用）
 - 文法、題目、會話、讀解：原創（AI 撰寫＋AI 審稿）
