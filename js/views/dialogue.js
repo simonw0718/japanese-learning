@@ -146,9 +146,10 @@ export async function listening({ params }) {
 
 // ---- 耳だけモード：播放清單（一段播完自動接下一段；段數可設、可循環；鎖屏續播）----
 const EAR_COUNTS = [[1, '1段'], [3, '3段'], [5, '5段'], [0, 'ずっと']]; // 0＝循環
-export async function listenOnly({ params }) {
+export async function listenOnly({ params, query }) {
+  const back = query?.get('from') === 'more' ? '#/more' : '#/home';
   const ds = await D.dialogues();
-  if (!ds.length) return h('div', { class: 'page' }, pageHead('耳だけモード', '#/home'), empty('会話データがまだありません。'));
+  if (!ds.length) return h('div', { class: 'page' }, pageHead('耳だけモード', back), empty('会話データがまだありません。'));
   const plan = await buildPlan();
   let cur = Math.max(0, ds.indexOf(ds.find((x) => x.id === params.id) || plan.nextDialogue || ds[0]));
   let playing = false, marked = false, run = 0;
@@ -176,7 +177,7 @@ export async function listenOnly({ params }) {
   const tog = h('button', { class: 'btn', type: 'button', 'aria-pressed': 'false', onclick: () => { text.hidden = !text.hidden; tog.setAttribute('aria-pressed', String(!text.hidden)); tog.textContent = text.hidden ? '文字を見る' : '文字を隠す'; } }, '文字を見る');
   const other = h('button', { class: 'btn', type: 'button', onclick: () => { tts.stop(); cur = (cur + 1) % ds.length; drawDlg(); idle(); } }, '次の会話');
   drawDlg();
-  return h('div', { class: 'page listen' }, pageHead('耳だけモード', '#/home'),
+  return h('div', { class: 'page listen' }, pageHead('耳だけモード', back),
     h('div', { class: 'card center ear' }, h('div', { class: 'ear-ic', 'aria-hidden': 'true' }, '🎧'), title, scene, btn, status),
     h('div', { class: 'set-row col' }, h('span', { class: 'muted' }, '続けて聞く数 / 連續播放段數'), segGroup(EAR_COUNTS, count, (v) => setSetting('earCount', v), '続けて聞く数')),
     h('div', { class: 'set-row col' }, h('span', { class: 'muted' }, '速さ / 語速'), speedSeg()),
