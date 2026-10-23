@@ -60,7 +60,9 @@
       "quiz_reading_05.json",
       "quiz_jlpt_togo_r.json",
       "quiz_jlpt_kadai.json",
-      "quiz_jlpt_togo_l.json"
+      "quiz_jlpt_togo_l.json",
+      "quiz_reading_07.json",
+      "quiz_jlpt_gaiyo_02.json"
     ],
     "dialogues": [
       "dialogues_01.json",
@@ -75,7 +77,8 @@
       "reading_03.json",
       "reading_04.json",
       "reading_05.json",
-      "reading_06.json"
+      "reading_06.json",
+      "reading_07.json"
     ],
     "keigo_table": [
       "keigo_table.json"

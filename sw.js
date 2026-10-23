@@ -1,6 +1,6 @@
 // Service worker：VERSION 與 SHELL_FILES 由 tools/bump_sw.py 產生（改檔後執行一次）
 // VERSION 格式 <hash>-a<n>：n 為音檔快取版本，只有手動改 n 才會清掉已下載的音檔
-const VERSION = 'bcfc9d52-a1';
+const VERSION = 'fde605e7-a1';
 const SHELL = `jp-shell-${VERSION}`;
 const DATA = `jp-data-${VERSION}`;
 const AUDIO = `jp-audio-${VERSION.split('-a').pop()}`;
