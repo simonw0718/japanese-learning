@@ -4,14 +4,14 @@ import * as db from '../db.js';
 import * as tts from '../tts.js';
 import { settings, setSetting } from '../store.js';
 import { createSession } from '../session.js';
-import { markDay, dayKey } from '../srs.js';
+import { markDay, doneKey } from '../srs.js';
 import { buildPlan } from '../plan.js';
 import { dlButton } from '../offline.js';
 
 // 題目本身的音檔（即時応答・発話表現・概要理解）
 const listenTexts = (q) => q.jlpt === 'sokuji' ? [q.prompt_ja, ...q.choices] : q.jlpt === 'hatsuwa' ? [q.situation_ja, ...q.choices] : q.jlpt === 'gaiyo' ? [...(q.script || []).map((l) => l.ja), q.stem] : [];
 const isMe = (d, t) => (t.role ? t.role === 'me' : t.spk === d.me);
-async function done() { await markDay(); await db.setMeta('dlg_done', dayKey()); }
+async function done() { await markDay(); await db.setMeta('dlg_done', await doneKey()); }
 
 const speedSeg = () => segGroup([0.7, 0.85, 1.0].map((r) => [r, '×' + r.toFixed(2).replace(/0$/, '')]), () => settings().rate, (r) => setSetting('rate', r), '速度 / 語速');
 

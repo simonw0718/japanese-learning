@@ -48,6 +48,11 @@ export const logOnly = (item_id, name, ms = 0) => lock(async () => {
 // 文法題最後出題時間（輪替用）：meta 'quizSeen' = {quizId: ts}
 export const quizSeen = async () => (await db.getMeta('quizSeen', {})) || {};
 export const markQuizSeen = (qid) => lock(async () => { const m = await quizSeen(); m[qid] = Date.now(); await db.setMeta('quizSeen', m); });
+// 先取り（明日の分を前倒し）：meta 'ahead' = {day, n}。今日の中で何回前倒ししたか
+export async function aheadN() { const a = await db.getMeta('ahead'); return a && a.day === dayKey() ? a.n : 0; }
+export const goAhead = () => lock(async () => { await db.setMeta('ahead', { day: dayKey(), n: (await aheadN()) + 1 }); });
+// 「今日の分は完了」フラグの値（先取り中は回ごとに別キー）
+export const doneKey = async () => { const n = await aheadN(); return n ? `${dayKey()}#${n}` : dayKey(); };
 export async function studiedDays() { return (await db.getMeta('days', [])) || []; }
 export async function markDay() {
   const days = await studiedDays(); const k = dayKey();

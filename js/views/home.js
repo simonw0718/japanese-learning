@@ -1,7 +1,7 @@
 import { h } from '../ui.js';
 import { buildPlan } from '../plan.js';
 import * as db from '../db.js';
-import { weekDots, dayKey } from '../srs.js';
+import { weekDots, doneKey, goAhead } from '../srs.js';
 import { settings } from '../store.js';
 import * as D from '../data.js';
 import { dailyDone } from './jlpt.js';
@@ -17,7 +17,7 @@ export async function home() {
   const p = await buildPlan();
   const dots = await weekDots();
   const todayN = p.answeredToday; // meta 計數，不必每次讀全部 log
-  const dlgDone = (await db.getMeta('dlg_done')) === dayKey();
+  const dlgDone = (await db.getMeta('dlg_done')) === await doneKey();
   const jDone = await dailyDone();
   const jOn = p.vocab.length > 0 || p.quizzes.some((q) => q.jlpt); // 出題できる
   const lastBackup = await db.getMeta('last_backup_at');
@@ -41,11 +41,14 @@ export async function home() {
   const nx = steps[0];
   const cont = nx
     ? h('a', { class: 'btn primary big cont', href: nx.href }, h('span', null, h('b', null, 'つづける'), h('small', null, ' / 繼續今天的練習')), h('small', { class: 'cont-sub' }, `次：${nx.label} ・ ${nx.sub}`))
-    : h('div', { class: 'card cont-done' }, h('b', null, '〇 今日の練習はぜんぶ完了！'), h('p', { class: 'muted' }, 'おつかれさま。聞き流すなら耳だけモードへ。/ 今天的練習都完成了'));
+    : h('div', { class: 'card cont-done' }, h('b', null, '〇 今日の練習はぜんぶ完了！'), h('p', { class: 'muted' }, 'おつかれさま。聞き流すなら耳だけモードへ。/ 今天的練習都完成了'),
+      // 先取り：明日の復習・新しい単語・文法・会話・JLPT 3問を今日やる（負荷が高い日は出さない）
+      g.newAllowed ? h('button', { class: 'btn', type: 'button', onclick: async () => { await goAhead(); dispatchEvent(new HashChangeEvent('hashchange')); } }, '⏩ 明日の分を先にやる / 提前做明天的份') : null);
   const stat = (n, label) => h('div', null, h('b', { class: 'big-n' }, n), h('small', null, label));
   const el = h('div', { class: 'home' },
     h('header', { class: 'home-head' }, h('div', null, h('h1', null, 'きょうの練習'), h('p', { class: 'muted' }, new Date().toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' }))), h('div', { class: 'seal', 'aria-hidden': 'true' }, '習')),
     g.label ? h('div', { class: 'note' }, g.label) : null,
+    p.ahead ? h('div', { class: 'note' }, `⏩ ${p.ahead}日先の分を練習中 / 正在提前做 ${p.ahead} 天後的份`) : null,
     cont,
     h('div', { class: 'flows' },
       flow('復', '復習', reviewSub + (todayN ? `・今日 ${todayN}回答` : ''), '#/review', { done: capDone || (p.due === 0 && todayN > 0) }),

@@ -5,7 +5,7 @@ import * as db from '../db.js';
 import { settings, setSetting } from '../store.js';
 import { createSession, JLPT_NAME, stemHtml, blankHtml } from '../session.js';
 import { genKanjiYomi, genHyoki } from '../logic.js';
-import { shuffle, markDay, dayKey } from '../srs.js';
+import { shuffle, markDay, doneKey } from '../srs.js';
 import { esc, rubyHtml } from '../ruby.js';
 
 // 題型 → 科目（得点区分：言語知識／読解／聴解）。順序＝試験の順。doukei は練習専用（模試・得点に入れない）
@@ -210,7 +210,7 @@ function review(c) {
 
 // ---- 今日の JLPT 3問（ホームの1ステップ）：本文なしで解ける題型からランダムに3問（doukei を含む）----
 const DAILY_TYPES = ['kanji_yomi', 'hyoki', 'gokeisei', 'bunmyaku', 'iikae', 'yoho', 'doukei', 'keishiki', 'narabe', 'gaiyo', 'kadai', 'hatsuwa', 'sokuji'];
-export const dailyDone = async () => (await db.getMeta('jlpt3_done')) === dayKey();
+export const dailyDone = async () => (await db.getMeta('jlpt3_done')) === await doneKey();
 export async function dailyCards(lv = lvNow(), n = 3) {
   const b = await bank(lv);
   const seen = await seenMap();
@@ -233,7 +233,7 @@ export async function daily() {
   wrap.append(h('p', { class: 'muted small' }, 'いろいろな題型から3問。答えるとすぐ解説が出ます / 隨機 3 題，作答後立即看解說'),
     createSession({ cards, srs: false, title: 'JLPT 3問',
       onAnswer: (c, name) => res.push([c.jt, name !== 'again']),
-      onFinish: async () => { await markDay(); await db.setMeta('jlpt3_done', dayKey()); addStats(lv, res); },
+      onFinish: async () => { await markDay(); await db.setMeta('jlpt3_done', await doneKey()); addStats(lv, res); },
       finishButtons: [{ label: 'ホームへ', href: '#/home', primary: true }, { label: 'JLPT 対策へ', href: '#/jlpt' }] }));
   return wrap;
 }
