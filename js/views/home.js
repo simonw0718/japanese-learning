@@ -29,7 +29,7 @@ export async function home() {
   const capDone = p.due > 0 && p.remaining === 0; // 今日上限已達
   const reviewSub = capDone ? '今日の分は完了 / 今日份已完成' : g.mode === 'welcome' ? `おかえり！${p.dueCards.length}枚だけ` : p.due ? `${p.dueCards.length}枚（約${Math.max(1, Math.round(p.dueCards.length * 0.27))}分）` : '今日の復習はありません';
   const wk = dots.filter((d) => d.on).length;
-  const gHref = p.nextGrammar ? `#/grammar/${p.nextGrammar.id}` : '#/grammar';
+  const gHref = p.grammarPick ? `#/grammar/${p.grammarPick.id}` : '#/grammar';
   // つづける：次の未完了ステップ（復習→新しい文法→新しい単語→会話）
   const steps = [
     p.dueCards.length && { href: '#/review', label: '復習', sub: `${p.dueCards.length}枚（約${Math.max(1, Math.round(p.dueCards.length * 0.27))}分）` },
@@ -52,7 +52,7 @@ export async function home() {
     cont,
     h('div', { class: 'flows' },
       flow('復', '復習', reviewSub + (todayN ? `・今日 ${todayN}回答` : ''), '#/review', { done: capDone || (p.due === 0 && todayN > 0) }),
-      flow('文', '新しい文法 1', p.nextGrammar ? p.nextGrammar.pattern : p.grammarToday ? '今日の分は完了' : p.grammarTotal ? (g.newAllowed ? 'すべて学習済み' : '復習を優先しましょう') : 'データがありません', gHref, { done: p.grammarToday > 0 && !p.nextGrammar, off: !p.nextGrammar && !p.grammarToday && !p.grammarTotal }),
+      flow('文', '新しい文法 1', p.nextGrammar ? p.nextGrammar.pattern : p.grammarToday ? '今日の分は完了' : p.grammarTotal ? (g.newAllowed ? 'すべて学習済み' : p.grammarPick ? `${p.grammarPick.pattern}（復習優先・やってもOK）` : '復習を優先しましょう') : 'データがありません', gHref, { done: p.grammarToday > 0 && !p.nextGrammar, off: !p.nextGrammar && !p.grammarToday && !p.grammarTotal }),
       flow('単', `新しい単語 ${p.newWords.length || ''}`.trim(), p.newWords.length ? `${p.newWords.length}語（${D.LEVEL_LABEL[settings().newLevel] || settings().newLevel}）` : p.newVocabToday ? `今日 ${p.newVocabToday}語 完了` : g.newAllowed ? 'データがありません' : '復習を優先しましょう', '#/newwords', { done: p.newVocabToday > 0 && !p.newWords.length, off: !p.newWords.length && !p.newVocabToday }),
       flow('話', '会話 1段', p.nextDialogue ? p.nextDialogue.title : 'データがありません', p.nextDialogue ? `#/dialogue/${p.nextDialogue.id}` : '#/dialogues', { done: dlgDone, off: !p.nextDialogue }),
       flow('試', 'JLPT 3問', jDone ? '今日の分は完了 / 今日份已完成' : !jOn ? 'データがありません' : jSkip ? '今日は省略してOK / 今天可略過' : 'いろいろな題型から3問 / 隨機 3 題', '#/jlpt3', { done: jDone, off: !jOn })),

@@ -67,12 +67,15 @@ export async function buildPlan() {
   const gLv = lv === 'N2' ? 'N2' : 'N3'; // 混合時文法仍先 N3
   const gOrder = [...grammar.filter((g) => g.level === gLv), ...grammar.filter((g) => g.level !== gLv)];
   const nextGrammar = gate.newAllowed && grammarToday < 1 + ahead ? gOrder.find((g) => !introduced.has(g.id)) || null : null;
+  // 首頁「文」卡一律指向具體文法：今日の分 → 今天剛學的 → 下一個未學（復習優先日也可自行進入）
+  const gToday = gCards.filter((c) => c.added >= sod).sort((a, b) => b.added - a.added)[0];
+  const grammarPick = nextGrammar || (gToday && gMap.get(gToday.item_id)) || gOrder.find((g) => !introduced.has(g.id)) || null;
   const days = await studiedDays();
   // 今日より前の学習日数で決める（今日学習した瞬間にずれて、翌日また同じ会話になるのを防ぐ）
   const before = days.filter((k) => k < dayKey()).length;
   const nextDialogue = dialogues.length ? dialogues[(before + ahead) % dialogues.length] : null;
   return {
-    gate, away, ahead, due: due.length, dueCards, remaining, reviewedToday: today.reviewed, answeredToday: today.answered, newWords, newVocabToday, grammarToday, nextGrammar, nextDialogue,
+    gate, away, ahead, due: due.length, dueCards, remaining, reviewedToday: today.reviewed, answeredToday: today.answered, newWords, newVocabToday, grammarToday, nextGrammar, grammarPick, nextDialogue,
     vocab, quizzes, grammar, dialogues, cards, introduced, vMap, qMap,
     memorized: cards.filter(isMemorized).length,
     grammarDone: gCards.length, // 文法覆蓋率＝已排程的文法卡／文法總數
