@@ -3,7 +3,7 @@ import { createSession } from '../session.js';
 import { buildPlan } from '../plan.js';
 import * as db from '../db.js';
 import * as D from '../data.js';
-import { markDay, dayKey } from '../srs.js';
+import { markDay, dayKey, addExtraNew } from '../srs.js';
 import { pickPractice } from '../logic.js';
 import { micBtn, ttsBtn, jaEl } from '../ui.js';
 
@@ -19,15 +19,19 @@ export async function review() {
   return wrap;
 }
 
+// 今日だけ追加：+5／+10（押すとこの画面を新しい単語で描き直す）
+const moreBtns = () => [5, 10].map((k) => ({ label: `＋${k}語 追加 / 再加 ${k} 個`, onclick: async () => { await addExtraNew(k); dispatchEvent(new HashChangeEvent('hashchange')); } }));
+const moreRow = () => h('div', { class: 'stack' }, moreBtns().map((b) => h('button', { class: 'btn', type: 'button', onclick: b.onclick }, b.label)));
+
 // 新しい単語：未導入の単語（解放済みバッチ順）
 export async function newWords() {
   const p = await buildPlan();
   const wrap = hint('新しい単語');
   if (!p.newWords.length) {
-    wrap.append(empty(p.gate.newAllowed ? (p.newVocabToday ? '今日の新しい単語は完了しました。' : '新しい単語はありません。') : p.gate.label), h('a', { class: 'btn primary', href: '#/home' }, 'ホームへ'));
+    wrap.append(empty(p.gate.newAllowed ? (p.newVocabToday ? '今日の新しい単語は完了しました。' : '新しい単語はありません。') : p.gate.label), moreRow(), h('a', { class: 'btn primary', href: '#/home' }, 'ホームへ'));
     return wrap;
   }
-  wrap.append(createSession({ cards: p.newWords, title: '新しい単語' }));
+  wrap.append(createSession({ cards: p.newWords, title: '新しい単語', finishButtons: [{ label: 'ホームへ', href: '#/home', primary: true }, ...moreBtns()] }));
   return wrap;
 }
 
